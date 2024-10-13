@@ -16,43 +16,68 @@ def new_logic():
     """
     Crea el catálogo con una sola estructura de datos (un mapa).
     """
-    # El mapa almacenará las películas bajo su ID.
-    catalog = ms.new_map(10000, 0.75)
+    catalog = {
+        'movies_by_id': ms.new_map(1000, 0.7),
+        'movies_by_language': ms.new_map(1000, 0.7),
+        'movies_by_year': ms.new_map(1000, 0.7),
+        'movies_by_company': ms.new_map(1000, 0.7),
+        'movies_by_title_language': ms.new_map(1000, 0.7)
+    }
     return catalog
 
 def load_data(catalog, filename):
-    """
-    Carga los datos del archivo CSV al catálogo.
-    Retorna el número total de películas cargadas y las listas de las primeras y últimas 5 películas.
-    """
-    data_dir = 'Data'
+    first_five = []
+    last_five = []
     filepath = os.path.join(data_dir, filename)
     
-    primeras = [] 
-    ultimas = [] 
-    movies_list = [] 
-    total_movies = 0 
-
     with open(filepath, encoding='utf-8') as file:
         movies = csv.DictReader(file)
-        
+        count = 0
+        total_movies = 0
+
         for movie in movies:
             total_movies += 1
-            process_movie_data(movie)
-            catalog[movie['id']] = movie
-            movies_list.append(movie)
-    if total_movies >= 10:
-        primeras = movies_list[:5]
-        ultimas = movies_list[-5:]
-    else:
-        primeras = movies_list[:total_movies//2]
-        ultimas = movies_list[total_movies//2:]
+            movie_year = get_year(movie['release_date'])
+            movie_language = movie['original_language']
+            movie_companies = json.loads(movie['production_companies'])
+            revenue = movie['revenue'] if movie['revenue'] and movie['revenue'] != '0' else "Undefined"
+            budget = movie['budget'] if movie['budget'] and movie['budget'] != '0' else "Undefined"
+            movie['revenue'] = revenue
+            movie['budget'] = budget
+            if revenue != "Undefined" and budget != "Undefined":
+                gain = float(revenue) - float(budget)
+            else:
+                gain = "Undefined"
+            movie['gain'] = gain
+            key = (movie['title'], movie_language)
+            ms.put(catalog['movies_by_title_language'], key, movie)
+            year_list = ms.get(catalog['movies_by_year'], movie_year)
+            if year_list is None:
+                year_list = sl.new_list()
+                ms.put(catalog['movies_by_year'], movie_year, year_list)
+            sl.add_last(year_list, movie)
+            for company in movie_companies:
+                company_name = company['name']
+                company_list = ms.get(catalog['movies_by_company'], company_name)
+                if company_list is None:
+                    company_list = sl.new_list()
+                    ms.put(catalog['movies_by_company'], company_name, company_list)
+                sl.add_last(company_list, movie)
+            if count < 5:
+                first_five.append(movie)
+            last_five.append(movie)
+            if len(last_five) > 5:
+                last_five.pop(0)
+            count += 1
+    return total_movies, first_five, last_five
 
-    return total_movies, primeras, ultimas
-
+def get_year(release_date):
+    date_obj = datetime.strptime(release_date, '%Y-%m-%d')
+    return date_obj.year
+    
 def process_movie_data(movie):
     """
-    Procesa y limpia los datos de una película sin usar 'try'.
+    Procesa y limpia los datos de una película.
     """
     fields = ['release_date', 'budget', 'revenue', 'runtime', 'title', 'original_language']
     for field in fields:
@@ -94,12 +119,17 @@ def calcular_gain(budget, revenue):
         gain = "Undefined"
     return gain
 
-def req_1(catalog):
+def req_1(catalog, title, original_language):
     """
     Retorna el resultado del requerimiento 1
     """
-    # TODO: Modificar el requerimiento 1
-    pass
+    key = (title, original_language)
+    
+    # Buscar la película en el mapa usando la clave compuesta
+    if ms.contains(catalog['movies_by_title_language'], key):
+        return ms.get(catalog['movies_by_title_language'], key)
+    else:
+        return None
 
 
 def req_2(catalog):

@@ -30,14 +30,24 @@ def print_menu():
 
 def load_data(control):
     filename = input("Ingrese el nombre del archivo CSV: ")
-    total, primeras, ultimas = logic.load_data(control, filename)
-    print("Total de películas procesadas y cargadas:", total)
-    n = 5
+    total_movies, first_five, last_five = logic.load_data(control, filename)
+    print(f"Total de películas cargadas: {total_movies}")
+    # Mostrar las primeras 5 películas
     print("\nPrimeras 5 películas cargadas:")
-    mostrar_peliculas(primeras)
+    print(tabulate([(movie['title'], movie['release_date'], movie['original_language'], 
+                     movie['runtime'], movie['budget'], movie['revenue'], movie['gain']) 
+                    for movie in first_five], 
+                    headers=["Título", "Fecha", "Idioma", "Duración", "Presupuesto", "Ingresos", "Ganancia"], 
+                    tablefmt="grid"))
+    
+    # Mostrar las últimas 5 películas
     print("\nÚltimas 5 películas cargadas:")
-    mostrar_peliculas(ultimas)
-
+    print(tabulate([(movie['title'], movie['release_date'], movie['original_language'], 
+                     movie['runtime'], movie['budget'], movie['revenue'], movie['gain']) 
+                    for movie in last_five], 
+                    headers=["Título", "Fecha", "Idioma", "Duración", "Presupuesto", "Ingresos", "Ganancia"], 
+                    tablefmt="grid"))
+    
 def mostrar_peliculas(peliculas):
     peliculas_data = []
     for movie in peliculas:
@@ -49,9 +59,10 @@ def mostrar_peliculas(peliculas):
             movie['vote_average'],
             movie['vote_count'],
             movie['budget'],
-            movie['revenue']
+            movie['revenue'],
+            movie.get('gain', 'Undefined')	
         ])
-    headers = ['ID', 'Título', 'Idioma', 'Fecha de Lanzamiento', 'Puntuación', 'Votos', 'Presupuesto', 'Ingresos']
+    headers = ['ID', 'Título', 'Idioma', 'Fecha de Lanzamiento', 'Puntuación', 'Votos', 'Presupuesto', 'Ingresos', 'Ganancia']
     print(tabulate(peliculas_data, headers=headers, tablefmt='grid'))
     
 def print_req_1(control):
@@ -59,38 +70,19 @@ def print_req_1(control):
     Solicita al usuario el título y el idioma, busca la película y muestra los resultados.
     """
     title = input("Ingrese el título de la película: ")
-    language = input("Ingrese el idioma original de la película (ejemplo: 'en', 'fr'): ")
-
-    movie = logic.find_movie_by_title_and_language(control, title, language)
-
+    original_language = input("Ingrese el idioma original de la película (ej. 'en' para inglés): ")
+    movie = logic.req_1(control, title, original_language)
+    
     if movie:
-        revenue = movie['revenue']
-        budget = movie['budget']
-        try:
-            if revenue != "Undefined" and budget != "Undefined":
-                profit = int(revenue) - int(budget)
-            else:
-                profit = "Indefinido"
-        except ValueError:
-            profit = "Indefinido"
-            
-        headers = ["Título Original", "Idioma Original", "Fecha de Publicación",
-                   "Duración (min)", "Presupuesto", "Ingresos Netos",
-                   "Ganancia Final", "Puntaje de Calificación"]
-        movie_data = [[
-            movie['title'],
-            movie['original_language'],
-            movie['release_date'],
-            movie['runtime'],
-            movie['budget'],
-            movie['revenue'],
-            profit,
-            movie['vote_average']
-        ]]
         print("\nPelícula encontrada:")
-        print(tabulate(movie_data, headers=headers, tablefmt='grid'))
+        movie_info = [[
+            movie['title'], movie['release_date'], movie['original_language'], 
+            movie['runtime'], movie['budget'], movie['revenue'], movie['vote_average'], movie['vote_count']
+        ]]
+        print(tabulate(movie_info, headers=["Título", "Fecha", "Idioma", "Duración", 
+                                            "Presupuesto", "Ingresos", "Calificación", "Votos"], tablefmt="grid"))
     else:
-        print("No se encontró ninguna película que cumpla con los criterios proporcionados.")
+        print(f"No se encontró ninguna película con el título '{title}' en el idioma '{original_language}'.")
 
 
 def print_req_2(control):
