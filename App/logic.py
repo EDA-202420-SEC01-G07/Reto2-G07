@@ -81,35 +81,6 @@ def get_data(catalog, id):
         return ms.get(catalog['movies'], id)
     else:
         return None
-    
-def get_first_and_last_movies(movies_map, n):
-    """
-    Retorna las primeras y últimas 'n' películas en el mapa.
-    """
-    # Obtener todas las claves del mapa y convertirlas a lista
-    keys = list(ms.key_set(movies_map))  # Convertir a lista para poder usar slicing
-    size = ms.size(movies_map)
-    
-    # Seleccionar las primeras 'n' y las últimas 'n' claves
-    first_keys = keys[:n]  # Primeras 'n' películas
-    last_keys = keys[-n:]  # Últimas 'n' películas
-
-    # Crear una lista para almacenar las películas seleccionadas
-    selected_movies = []
-
-    # Agregar las primeras 'n' películas
-    for key in first_keys:
-        movie = ms.get(movies_map, key)
-        if movie:
-            selected_movies.append({"key": key, "value": movie})
-    
-    # Agregar las últimas 'n' películas
-    for key in last_keys:
-        movie = ms.get(movies_map, key)
-        if movie:
-            selected_movies.append({"key": key, "value": movie})
-    
-    return selected_movies
 
 def req_1(catalog):
     """

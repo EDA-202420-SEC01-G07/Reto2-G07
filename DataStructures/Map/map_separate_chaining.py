@@ -51,15 +51,12 @@ def put(my_map, key, value):
 def contains(my_map, key):
     index = mf.hash_value(my_map, key)
     bucket = sl.get_element(my_map['table'], index)
-    if bucket is None or sl.size(bucket) == 0:
-        return False
-    current = sl.get_element(bucket, 0)
-    if current is None:
-        return False
+    current = bucket['first'] if bucket is not None else None
     while current is not None:
-        if current['key'] == key:
+        pair = current['info']
+        if pair['key'] == key:
             return True
-        current = sl.next(bucket, current)
+        current = current['next']
     return False
 
 def get(my_map, key):
@@ -135,9 +132,10 @@ def rehash(my_map):
 
     new_table = sl.new_list()
     for i in range(new_capacity):
-        sl.add_last(new_table, sl.new_list())  # Use sl.new_list() instead of lt.new_list()
+        bucket = sl.new_list() 
+        sl.add_last(new_table, bucket)
     my_map['table'] = new_table
-    my_map['size'] = 0  
+    my_map['size'] = 0
 
     for i in range(old_capacity):
         bucket = sl.get_element(old_table, i)
