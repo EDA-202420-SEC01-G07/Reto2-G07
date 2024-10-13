@@ -38,7 +38,7 @@ def load_data(catalog, filename):
         for movie in movies:
             total_movies += 1
             movie_year = get_year(movie['release_date'])
-            movie_language = movie['original_language']
+            movie_language = movie['original_language'].strip().lower()
             movie_companies = json.loads(movie['production_companies'])
             revenue = movie['revenue'] if movie['revenue'] and movie['revenue'] != '0' else "Undefined"
             budget = movie['budget'] if movie['budget'] and movie['budget'] != '0' else "Undefined"
@@ -49,6 +49,8 @@ def load_data(catalog, filename):
             else:
                 gain = "Undefined"
             movie['gain'] = gain
+            movie['runtime'] = float(movie['runtime']) if movie['runtime'] else "Undefined"
+
             key = (movie['title'], movie_language)
             ms.put(catalog['movies_by_title_language'], key, movie)
             year_list = ms.get(catalog['movies_by_year'], movie_year)
@@ -63,6 +65,13 @@ def load_data(catalog, filename):
                     company_list = sl.new_list()
                     ms.put(catalog['movies_by_company'], company_name, company_list)
                 sl.add_last(company_list, movie)
+            
+            language_list = ms.get(catalog['movies_by_language'], movie_language)
+            if language_list is None:
+                language_list = sl.new_list()
+                ms.put(catalog['movies_by_language'], movie_language, language_list)
+            sl.add_last(language_list, movie)
+            
             if count < 5:
                 first_five.append(movie)
             last_five.append(movie)
@@ -70,7 +79,7 @@ def load_data(catalog, filename):
                 last_five.pop(0)
             count += 1
     return total_movies, first_five, last_five
-
+    
 def get_year(release_date):
     date_obj = datetime.strptime(release_date, '%Y-%m-%d')
     return date_obj.year
@@ -92,7 +101,6 @@ def req_1(catalog, title, original_language):
     else:
         return None
 
-
 def req_2(catalog):
     """
     Retorna el resultado del requerimiento 2
@@ -100,15 +108,93 @@ def req_2(catalog):
     # TODO: Modificar el requerimiento 2
     pass
 
-
-def req_3(catalog):
+def req_3(catalog, language, start_date_str, end_date_str):
     """
-    Retorna el resultado del requerimiento 3
+    Lista las películas en un idioma específico dentro de un rango de fechas.
+
+    Parámetros:
+        catalog (dict): El catálogo de películas.
+        language (str): Idioma original de publicación (ej. 'en', 'fr', 'zh').
+        start_date_str (str): Fecha inicial en formato '%Y-%m-%d'.
+        end_date_str (str): Fecha final en formato '%Y-%m-%d'.
+
+    Retorna:
+        dict: Contiene el número total de películas, tiempo promedio de duración y la lista de películas.
     """
-    # TODO: Modificar el requerimiento 3
-    pass
+    start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+    end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
 
+    language_list = ms.get(catalog['movies_by_language'], language)
+    if language_list is None:
+        return {
+            "total": 0,
+            "average_duration": 0,
+            "movies": []
+        }
 
+    matching_movies = []
+    total_duration = 0
+    current = language_list['first']
+    while current:
+        movie = current['info']
+        movie_date = datetime.strptime(movie['release_date'], '%Y-%m-%d')
+
+        if start_date <= movie_date <= end_date:
+            matching_movies.append(movie)
+            if isinstance(movie['runtime'], (int, float)):
+                total_duration += movie['runtime']
+        
+        current = current['next']
+    matching_movies.sort(key=lambda x: x['release_date'], reverse=True)
+
+    total_movies = len(matching_movies)
+    average_duration = (total_duration / total_movies) if total_movies > 0 else 0
+    if total_movies > 20:
+        matching_movies = matching_movies[:10]
+    formatted_movies = []
+    for movie in matching_movies:
+        formatted_movie = {
+            "release_date": movie['release_date'],
+            "title": movie['title'],
+            "budget": format_number(movie['budget']),
+            "revenue": format_number(movie['revenue']),
+            "gain": format_gain(movie['gain']),
+            "runtime": movie['runtime'],
+            "vote_average": movie['vote_average'],
+            "status": movie['status']
+        }
+        formatted_movies.append(formatted_movie)
+
+    return {
+        "total": total_movies,
+        "average_duration": average_duration,
+        "movies": formatted_movies
+    }
+    
+def format_number(value):
+    """
+    Formatea un número con comas como separadores de miles.
+    Si el valor es 'Undefined', lo retorna tal cual.
+    """
+    if isinstance(value, str):
+        return value
+    elif isinstance(value, (int, float)):
+        return "{:,}".format(int(value))
+    else:
+        return "Undefined"
+
+def format_gain(gain):
+    """
+    Formatea la ganancia, manejando el caso 'Undefined'.
+    """
+    if gain == "Undefined":
+        return gain
+    elif isinstance(gain, (int, float)):
+        return "{:,}".format(int(gain))
+    else:
+        return "Undefined"
+
+    
 def req_4(catalog):
     """
     Retorna el resultado del requerimiento 4
