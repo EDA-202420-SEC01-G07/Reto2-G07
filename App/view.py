@@ -1,12 +1,19 @@
 import sys
+import App.logic as logic
+from DataStructures.List import array_list as al
+from DataStructures.List import single_linked_list as sl
+from DataStructures.Map import map_separate_chaining as ms
+from tabulate import tabulate
 
+default_limit=1000
+sys.setrecursionlimit(default_limit*10)
 
 def new_logic():
     """
         Se crea una instancia del controlador
     """
-    #TODO: Llamar la función de la lógica donde se crean las estructuras de datos
-    pass
+    control = logic.new_logic()
+    return control
 
 def print_menu():
     print("Bienvenido")
@@ -23,18 +30,64 @@ def print_menu():
 
 def load_data(control):
     """
-    Carga los datos
+    Carga los datos y muestra un resumen de las películas.
     """
-    #TODO: Realizar la carga de datos
-    pass
+    filename = str(input("Ingrese el nombre del archivo CSV: "))
+    total, loaded = logic.load_data(control, filename)
+    
+    print('Total de peliculas cargadas: ' + str(total))
+    print('Primeras 5 peliculas cargadas:')
+    headers = ["Fecha de Publicación", "Título Original", "Idioma Original", 
+               "Duración (min)", "Presupuesto", "Ingresos", "Ganancias"]
+    first_five_movies = [
+        [
+            movie['release_date'],
+            movie['title'],
+            movie['original_language'],
+            movie['runtime'],
+            movie['budget'],
+            movie['revenue'],
+            movie['revenue'] - movie['budget']
+        ]
+        for movie in loaded[:5]
+    ]
+    print(tabulate(first_five_movies, headers=headers, tablefmt='grid'))
 
+    print("\nÚltimas 5 películas cargadas:")
+    last_five_movies = [
+        [
+            movie['release_date'],
+            movie['title'],
+            movie['original_language'],
+            movie['runtime'],
+            movie['budget'],
+            movie['revenue'],
+            movie['revenue'] - movie['budget']
+        ]
+        for movie in loaded[-5:]
+    ]
+    print(tabulate(last_five_movies, headers=headers, tablefmt='grid'))
+    
 
 def print_data(control, id):
     """
         Función que imprime un dato dado su ID
     """
-    #TODO: Realizar la función para imprimir un elemento
-    pass
+    data = logic.get_data(control, id)
+    
+    if data:
+        # Si el dato es una película, imprimimos sus detalles
+        print("Información del dato:")
+        print("  ID: " + str(data['id']))
+        print("  Título: " + str(data['title']))
+        print("  Idioma original: " + str(data['original_language']))
+        print("  Fecha de lanzamiento: " + str(data['release_date']))
+        print("  Presupuesto: " + str(data['budget']))
+        print("  Recaudación: " + str(data['revenue']))
+        print("  Promedio de votos: " + str(data['vote_average']))
+        print("  Número de votos: " + str(data['vote_count']))
+    else:
+        print("No se encontró ningún dato con ID: " + str(id))
 
 def print_req_1(control):
     """
