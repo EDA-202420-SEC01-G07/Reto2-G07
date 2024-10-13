@@ -56,9 +56,13 @@ def print_req_1(control):
     
     if movie:
         print("\nPelícula encontrada:")
+        if movie['gain'] != "Undefined":
+            gain_formatted = f"{movie['gain']:,.2f}"
+        else:
+            gain_formatted = movie['gain']
         movie_info = [[
             movie['title'], movie['release_date'], movie['original_language'], 
-            movie['runtime'], movie['budget'], movie['revenue'], movie["gain"], movie['vote_average'], movie['vote_count']
+            movie['runtime'], movie['budget'], movie['revenue'], gain_formatted, movie['vote_average'], movie['vote_count']
         ]]
         print(tabulate(movie_info, headers=["Título", "Fecha", "Idioma", "Duración", 
                                             "Presupuesto", "Ingresos", "Ganancia", "Calificación", "Votos"], tablefmt="grid"))
