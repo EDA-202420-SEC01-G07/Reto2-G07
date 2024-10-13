@@ -128,17 +128,6 @@ def value_set(my_map):
     return values
 
 def rehash(my_map):
-    """
-    Hace rehash de todos los elementos de la tabla de hash.
-
-    Incrementa la capacidad de la tabla al doble y se hace rehash de todos los elementos de la tabla uno por uno.
-
-    Parameters:
-    - my_map (map_separate_chaining): El map a hacer rehash.
-
-    Returns:
-    - El map con la nueva capacidad.
-    """
     old_table = my_map['table']
     old_capacity = my_map['capacity']
     new_capacity = mf.next_prime(old_capacity * 2)
@@ -146,16 +135,16 @@ def rehash(my_map):
 
     new_table = sl.new_list()
     for i in range(new_capacity):
-        sl.add_last(new_table, lt.new_list()) 
+        sl.add_last(new_table, sl.new_list())  # Use sl.new_list() instead of lt.new_list()
     my_map['table'] = new_table
     my_map['size'] = 0  
 
     for i in range(old_capacity):
-        bucket = sl.get_element(old_table, i)  
-        current = bucket['first'] if bucket is not None else None 
+        bucket = sl.get_element(old_table, i)
+        current = bucket['first'] if bucket is not None else None
 
         while current is not None:
-            pair = current['info'] 
+            pair = current['info']
             put(my_map, pair['key'], pair['value'])
             current = current['next']
 

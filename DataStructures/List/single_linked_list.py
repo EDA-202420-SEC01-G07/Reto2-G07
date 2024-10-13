@@ -713,11 +713,7 @@ def partition(my_list, lo, hi, sort_crit):
 def default_sort_criteria(element1, element2):
     """ Función de comparación por defecto para ordenar de manera ascendente.
 
-<<<<<<< HEAD
-        Compara dos elementos y retorna ``True`` si el primer elemento es menor al segundo elemento.
-=======
         Compara dos elementos y retorna ``True`` si el primer elemento es menor o igual al segundo elemento.
->>>>>>> origin/main
 
         :param element1: Elemento 1
         :type element1: any
