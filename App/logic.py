@@ -14,73 +14,85 @@ data_dir = os.path.join(project_dir, 'Data')
 
 def new_logic():
     """
-    Crea el catalogo para almacenar las estructuras de datos
+    Crea el catálogo con una sola estructura de datos (un mapa).
     """
-    catalog = {
-        'movies': ms.new_map(100, 0.75), 
-        'movies_by_language': ms.new_map(100, 0.75), 
-        'movies_by_genre': ms.new_map(100, 0.75), 
-    }
+    # El mapa almacenará las películas bajo su ID.
+    catalog = ms.new_map(10000, 0.75)
     return catalog
-
 
 def load_data(catalog, filename):
     """
-    Carga los datos del reto
+    Carga los datos del archivo CSV al catálogo.
+    Retorna el número total de películas cargadas y las listas de las primeras y últimas 5 películas.
     """
+    data_dir = 'Data'
     filepath = os.path.join(data_dir, filename)
-    total = 0
-    loaded = []
+    
+    primeras = [] 
+    ultimas = [] 
+    movies_list = [] 
+    total_movies = 0 
+
     with open(filepath, encoding='utf-8') as file:
         movies = csv.DictReader(file)
-
+        
         for movie in movies:
-            genres_list = json.loads(movie["genres"])
-            for genre in genres_list:
-                genre_id = genre["id"]
-                genre_name = genre["name"]
-                if not ms.contains(catalog['movies_by_genre'], genre_id):
-                    ms.put(catalog['movies_by_genre'], genre_id, genre_name)
+            total_movies += 1
+            process_movie_data(movie)
+            catalog[movie['id']] = movie
+            movies_list.append(movie)
+    if total_movies >= 10:
+        primeras = movies_list[:5]
+        ultimas = movies_list[-5:]
+    else:
+        primeras = movies_list[:total_movies//2]
+        ultimas = movies_list[total_movies//2:]
 
-            language = movie["original_language"]
-            if not ms.contains(catalog['movies_by_language'], language):
-                ms.put(catalog['movies_by_language'], language, movie["title"])
+    return total_movies, primeras, ultimas
 
-            movie_id = movie['id']
-            if not ms.contains(catalog['movies'], movie_id):
-                movie_data = {
-                    'title': movie['title'],
-                    'original_language': movie['original_language'],
-                    'release_date': movie['release_date'],
-                    'revenue': float(movie['revenue']) if movie['revenue'] else 0.0,
-                    'budget': float(movie['budget']) if movie['budget'] else 0.0,
-                    'runtime': float(movie['runtime']) if movie['runtime'] else 0.0,
-                    'status': movie['status'],
-                    'vote_average': float(movie['vote_average']) if movie['vote_average'] else 0.0,
-                    'vote_count': int(movie['vote_count']) if movie['vote_count'] else 0,
-                    'genres': genres_list,
-                    'production_companies': json.loads(movie['production_companies']),
-                }
-                ms.put(catalog['movies'], movie_id, movie_data)
-                loaded.append(movie_data)
-                total += 1
-    return total, loaded
+def process_movie_data(movie):
+    """
+    Procesa y limpia los datos de una película sin usar 'try'.
+    """
+    fields = ['release_date', 'budget', 'revenue', 'runtime', 'title', 'original_language']
+    for field in fields:
+        if not movie.get(field):
+            movie[field] = "Undefined"
+    json_fields = ['production_companies', 'genres']
+    for field in json_fields:
+        raw_data = movie.get(field, '[]')
+        if raw_data.strip() == '' or raw_data.strip() == '[]':
+            data_list = []
+        else:
+            raw_data = raw_data.strip()
+            if raw_data[0] == '[' and raw_data[-1] == ']':
+                data_list = json.loads(raw_data)
+            else:
+                data_list = []
+
+        processed_list = []
+        for item in data_list:
+            if isinstance(item, dict) and 'name' in item and 'id' in item:
+                processed_list.append({'name': item['name'], 'id': item['id']})
+            else:
+                processed_list.append({'name': "Undefined", 'id': "Undefined"})
+        movie[field] = processed_list
 
 def get_data(catalog, id):
     """
     Retorna los datos de una película dado su ID.
-
-    Args:
-    - catalog: Estructura que contiene el mapa con las películas.
-    - id: ID de la película que se desea consultar.
-
-    Returns:
-    - Los datos de la película si existe, de lo contrario None.
     """
-    if ms.contains(catalog['movies'], id):
-        return ms.get(catalog['movies'], id)
+    return ms.get(catalog, id)
+
+def calcular_gain(budget, revenue):
+    """
+    Calcula la ganancia de una película a partir del presupuesto y los ingresos.
+    """
+    if budget != "Undefined" and revenue != "Undefined":
+        gain = int(revenue) - int(budget)
     else:
-        return None
+        gain = "Undefined"
+    return gain
 
 def req_1(catalog):
     """
