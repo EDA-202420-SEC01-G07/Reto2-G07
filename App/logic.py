@@ -81,17 +81,31 @@ def process_movie_data(movie):
     """
     fields = ['release_date', 'budget', 'revenue', 'runtime', 'title', 'original_language']
     for field in fields:
-        if not movie.get(field):
+        value = movie.get(field, "").strip()
+        if not value:
             movie[field] = "Undefined"
+        else:
+            # Convertir a entero si es posible para budget y revenue
+            if field in ['budget', 'revenue']:
+                try:
+                    numeric_value = int(float(value))
+                    movie[field] = "Undefined" if numeric_value == 0 else numeric_value
+                except ValueError:
+                    movie[field] = "Undefined"
+            else:
+                movie[field] = value
+
     json_fields = ['production_companies', 'genres']
     for field in json_fields:
-        raw_data = movie.get(field, '[]')
-        if raw_data.strip() == '' or raw_data.strip() == '[]':
+        raw_data = movie.get(field, '[]').strip()
+        if not raw_data or raw_data == '[]':
             data_list = []
         else:
-            raw_data = raw_data.strip()
-            if raw_data[0] == '[' and raw_data[-1] == ']':
-                data_list = json.loads(raw_data)
+            if raw_data.startswith('[') and raw_data.endswith(']'):
+                try:
+                    data_list = json.loads(raw_data)
+                except json.JSONDecodeError:
+                    data_list = []
             else:
                 data_list = []
 
@@ -112,12 +126,22 @@ def get_data(catalog, id):
 def calcular_gain(budget, revenue):
     """
     Calcula la ganancia de una película a partir del presupuesto y los ingresos.
+    Asigna 'Undefined' si budget, revenue o gain son 0 o no definidos.
     """
-    if budget != "Undefined" and revenue != "Undefined":
-        gain = int(revenue) - int(budget)
+    if isinstance(budget, int) and isinstance(revenue, int):
+        gain = revenue - budget
+        if gain == 0:
+            return "Undefined"
+        return gain
     else:
-        gain = "Undefined"
-    return gain
+        return "Undefined"
+
+def normalize_text(text):
+    """
+    Normaliza el texto eliminando espacios adicionales y caracteres especiales.
+    """
+    text = text.strip().lower()
+    return text
 
 def req_1(catalog, title, original_language):
     """

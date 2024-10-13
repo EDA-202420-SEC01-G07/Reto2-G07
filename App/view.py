@@ -51,6 +51,25 @@ def load_data(control):
 def mostrar_peliculas(peliculas):
     peliculas_data = []
     for movie in peliculas:
+        gain = movie.get('gain', "Undefined")
+        if isinstance(gain, int):
+            gain = f"{gain:,}"  # Formatear con comas
+        elif gain == 0:
+            gain = "Undefined"
+
+        # Formatear 'budget' y 'revenue' si son enteros
+        budget = movie.get('budget', "Undefined")
+        if isinstance(budget, int):
+            budget = f"{budget:,}"
+        elif budget == 0:
+            budget = "Undefined"
+
+        revenue = movie.get('revenue', "Undefined")
+        if isinstance(revenue, int):
+            revenue = f"{revenue:,}"
+        elif revenue == 0:
+            revenue = "Undefined"
+
         peliculas_data.append([
             movie['id'],
             movie['title'],
@@ -63,8 +82,23 @@ def mostrar_peliculas(peliculas):
             movie.get('gain', 'Undefined')	
         ])
     headers = ['ID', 'Título', 'Idioma', 'Fecha de Lanzamiento', 'Puntuación', 'Votos', 'Presupuesto', 'Ingresos', 'Ganancia']
+    headers = ['ID', 'Título', 'Idioma', 'Fecha de Lanzamiento', 'Puntuación', 'Votos', 'Presupuesto', 'Ingresos', 'Ganancia']
     print(tabulate(peliculas_data, headers=headers, tablefmt='grid'))
-    
+
+def print_all_movies(control):
+    """
+    Función de depuración para listar todas las películas en el catálogo.
+    """
+    print("\n--- Lista de Todas las Películas en el Catálogo ---")
+    peliculas = []
+    for key in control.key_set():
+        movie = control.get(key)
+        if movie:
+            peliculas.append([movie['title'], movie['original_language']])
+    headers = ['Título', 'Idioma Original']
+    print(tabulate(peliculas, headers=headers, tablefmt='grid'))
+    print()
+
 def print_req_1(control):
     """
     Solicita al usuario el título y el idioma, busca la película y muestra los resultados.
