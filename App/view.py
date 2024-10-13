@@ -32,15 +32,13 @@ def load_data(control):
     filename = input("Ingrese el nombre del archivo CSV: ")
     total_movies, first_five, last_five = logic.load_data(control, filename)
     print(f"Total de películas cargadas: {total_movies}")
-    # Mostrar las primeras 5 películas
     print("\nPrimeras 5 películas cargadas:")
     print(tabulate([(movie['title'], movie['release_date'], movie['original_language'], 
                      movie['runtime'], movie['budget'], movie['revenue'], movie['gain']) 
                     for movie in first_five], 
                     headers=["Título", "Fecha", "Idioma", "Duración", "Presupuesto", "Ingresos", "Ganancia"], 
                     tablefmt="grid"))
-    
-    # Mostrar las últimas 5 películas
+
     print("\nÚltimas 5 películas cargadas:")
     print(tabulate([(movie['title'], movie['release_date'], movie['original_language'], 
                      movie['runtime'], movie['budget'], movie['revenue'], movie['gain']) 
@@ -48,57 +46,6 @@ def load_data(control):
                     headers=["Título", "Fecha", "Idioma", "Duración", "Presupuesto", "Ingresos", "Ganancia"], 
                     tablefmt="grid"))
     
-def mostrar_peliculas(peliculas):
-    peliculas_data = []
-    for movie in peliculas:
-        gain = movie.get('gain', "Undefined")
-        if isinstance(gain, int):
-            gain = f"{gain:,}"  # Formatear con comas
-        elif gain == 0:
-            gain = "Undefined"
-
-        # Formatear 'budget' y 'revenue' si son enteros
-        budget = movie.get('budget', "Undefined")
-        if isinstance(budget, int):
-            budget = f"{budget:,}"
-        elif budget == 0:
-            budget = "Undefined"
-
-        revenue = movie.get('revenue', "Undefined")
-        if isinstance(revenue, int):
-            revenue = f"{revenue:,}"
-        elif revenue == 0:
-            revenue = "Undefined"
-
-        peliculas_data.append([
-            movie['id'],
-            movie['title'],
-            movie['original_language'],
-            movie['release_date'],
-            movie['vote_average'],
-            movie['vote_count'],
-            movie['budget'],
-            movie['revenue'],
-            movie.get('gain', 'Undefined')	
-        ])
-    headers = ['ID', 'Título', 'Idioma', 'Fecha de Lanzamiento', 'Puntuación', 'Votos', 'Presupuesto', 'Ingresos', 'Ganancia']
-    headers = ['ID', 'Título', 'Idioma', 'Fecha de Lanzamiento', 'Puntuación', 'Votos', 'Presupuesto', 'Ingresos', 'Ganancia']
-    print(tabulate(peliculas_data, headers=headers, tablefmt='grid'))
-
-def print_all_movies(control):
-    """
-    Función de depuración para listar todas las películas en el catálogo.
-    """
-    print("\n--- Lista de Todas las Películas en el Catálogo ---")
-    peliculas = []
-    for key in control.key_set():
-        movie = control.get(key)
-        if movie:
-            peliculas.append([movie['title'], movie['original_language']])
-    headers = ['Título', 'Idioma Original']
-    print(tabulate(peliculas, headers=headers, tablefmt='grid'))
-    print()
-
 def print_req_1(control):
     """
     Solicita al usuario el título y el idioma, busca la película y muestra los resultados.
@@ -111,10 +58,10 @@ def print_req_1(control):
         print("\nPelícula encontrada:")
         movie_info = [[
             movie['title'], movie['release_date'], movie['original_language'], 
-            movie['runtime'], movie['budget'], movie['revenue'], movie['vote_average'], movie['vote_count']
+            movie['runtime'], movie['budget'], movie['revenue'], movie["gain"], movie['vote_average'], movie['vote_count']
         ]]
         print(tabulate(movie_info, headers=["Título", "Fecha", "Idioma", "Duración", 
-                                            "Presupuesto", "Ingresos", "Calificación", "Votos"], tablefmt="grid"))
+                                            "Presupuesto", "Ingresos", "Ganancia", "Calificación", "Votos"], tablefmt="grid"))
     else:
         print(f"No se encontró ninguna película con el título '{title}' en el idioma '{original_language}'.")
 
