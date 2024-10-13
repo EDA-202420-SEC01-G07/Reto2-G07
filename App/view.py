@@ -30,14 +30,7 @@ def print_menu():
     print("0- Salir")
 
 def load_data(control):
-    filename = input("Ingrese el nombre del archivo CSV: ").strip()
-    
-    if not filename:
-        print("Nombre de archivo vacío. Por favor, intente nuevamente.")
-        return
-    if not os.path.isfile(filename):
-        print("Archivo '{}' no encontrado. Por favor, verifique el nombre e intente nuevamente.".format(filename))
-        return
+    filename = input("Ingrese el nombre del archivo CSV: ")
     total_movies, first_five, last_five = logic.load_data(control, filename)
     print("\nTotal de películas cargadas: {}".format(total_movies))
     print("\nPrimeras 5 películas cargadas:")
