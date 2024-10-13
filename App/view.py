@@ -41,6 +41,25 @@ def load_data(control):
 def mostrar_peliculas(peliculas):
     peliculas_data = []
     for movie in peliculas:
+        gain = movie.get('gain', "Undefined")
+        if isinstance(gain, int):
+            gain = f"{gain:,}"  # Formatear con comas
+        elif gain == 0:
+            gain = "Undefined"
+
+        # Formatear 'budget' y 'revenue' si son enteros
+        budget = movie.get('budget', "Undefined")
+        if isinstance(budget, int):
+            budget = f"{budget:,}"
+        elif budget == 0:
+            budget = "Undefined"
+
+        revenue = movie.get('revenue', "Undefined")
+        if isinstance(revenue, int):
+            revenue = f"{revenue:,}"
+        elif revenue == 0:
+            revenue = "Undefined"
+
         peliculas_data.append([
             movie['id'],
             movie['title'],
@@ -48,50 +67,113 @@ def mostrar_peliculas(peliculas):
             movie['release_date'],
             movie['vote_average'],
             movie['vote_count'],
-            movie['budget'],
-            movie['revenue']
+            budget,
+            revenue,
+            gain  # Agregar la ganancia
         ])
-    headers = ['ID', 'Título', 'Idioma', 'Fecha de Lanzamiento', 'Puntuación', 'Votos', 'Presupuesto', 'Ingresos']
+    headers = ['ID', 'Título', 'Idioma', 'Fecha de Lanzamiento', 'Puntuación', 'Votos', 'Presupuesto', 'Ingresos', 'Ganancia']
     print(tabulate(peliculas_data, headers=headers, tablefmt='grid'))
-    
+
+def print_all_movies(control):
+    """
+    Función de depuración para listar todas las películas en el catálogo.
+    """
+    print("\n--- Lista de Todas las Películas en el Catálogo ---")
+    peliculas = []
+    for key in control.key_set():
+        movie = control.get(key)
+        if movie:
+            peliculas.append([movie['title'], movie['original_language']])
+    headers = ['Título', 'Idioma Original']
+    print(tabulate(peliculas, headers=headers, tablefmt='grid'))
+    print()
+
 def print_req_1(control):
     """
     Solicita al usuario el título y el idioma, busca la película y muestra los resultados.
     """
-    title = input("Ingrese el título de la película: ")
-    language = input("Ingrese el idioma original de la película (ejemplo: 'en', 'fr'): ")
+    print("\n--- Requerimiento No. 1 ---")
+    title = input("Ingrese el título de la película: ").strip()
+    language = input("Ingrese el idioma original de publicación (código de dos letras, ej.: 'en', 'fr'): ").strip().lower()
 
-    movie = logic.find_movie_by_title_and_language(control, title, language)
+    # Validar entradas
+    if not title:
+        print("El título de la película no puede estar vacío.\n")
+        return
+    if not language or len(language) != 2:
+        print("El idioma debe ser un código de dos letras (ej.: 'en', 'fr').\n")
+        return
 
-    if movie:
-        revenue = movie['revenue']
-        budget = movie['budget']
-        try:
-            if revenue != "Undefined" and budget != "Undefined":
-                profit = int(revenue) - int(budget)
-            else:
-                profit = "Indefinido"
-        except ValueError:
-            profit = "Indefinido"
-            
-        headers = ["Título Original", "Idioma Original", "Fecha de Publicación",
-                   "Duración (min)", "Presupuesto", "Ingresos Netos",
-                   "Ganancia Final", "Puntaje de Calificación"]
-        movie_data = [[
-            movie['title'],
-            movie['original_language'],
-            movie['release_date'],
-            movie['runtime'],
-            movie['budget'],
-            movie['revenue'],
-            profit,
-            movie['vote_average']
-        ]]
-        print("\nPelícula encontrada:")
-        print(tabulate(movie_data, headers=headers, tablefmt='grid'))
-    else:
-        print("No se encontró ninguna película que cumpla con los criterios proporcionados.")
+    # Buscar la película
+    matching_movies = logic.req_1(control, title, language)
 
+    if not matching_movies:
+        print("No se encontró ninguna película que coincida con los criterios proporcionados.\n")
+        return
+
+    # Preparar datos para la visualización
+    peliculas_data = []
+    for movie in matching_movies:
+        runtime = movie.get('runtime', "Undefined")
+        if isinstance(runtime, int):
+            runtime = f"{runtime} minutos"
+        elif runtime == 0:
+            runtime = "Undefined"
+
+        release_date = movie.get('release_date', "Undefined")
+        title_original = movie.get('title', "Undefined")
+
+        budget = movie.get('budget', "Undefined")
+        if isinstance(budget, int):
+            budget = f"{budget:,}"
+        elif budget == 0:
+            budget = "Undefined"
+
+        revenue = movie.get('revenue', "Undefined")
+        if isinstance(revenue, int):
+            revenue = f"{revenue:,}"
+        elif revenue == 0:
+            revenue = "Undefined"
+
+        gain = movie.get('gain', "Undefined")
+        if isinstance(gain, int):
+            gain = f"{gain:,}"
+        elif gain == 0:
+            gain = "Undefined"
+
+        vote_average = movie.get('vote_average', "Undefined")
+        if isinstance(vote_average, float) or isinstance(vote_average, int):
+            vote_average = f"{vote_average}"
+        else:
+            vote_average = "Undefined"
+
+        original_language = movie.get('original_language', "Undefined")
+
+        peliculas_data.append([
+            runtime,
+            release_date,
+            title_original,
+            budget,
+            revenue,
+            gain,
+            vote_average,
+            original_language
+        ])
+
+    headers = [
+        'Duración',
+        'Fecha de Publicación',
+        'Título Original',
+        'Presupuesto',
+        'Ingresos Netos',
+        'Ganancia',
+        'Puntaje de Calificación',
+        'Idioma Original'
+    ]
+
+    print("\nResultados de la búsqueda:")
+    print(tabulate(peliculas_data, headers=headers, tablefmt='grid'))
+    print()
 
 def print_req_2(control):
     """
