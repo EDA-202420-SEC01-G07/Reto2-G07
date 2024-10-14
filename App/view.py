@@ -29,96 +29,216 @@ def print_menu():
     print("0- Salir")
 
 def load_data(control):
-    """
-    Carga los datos y muestra un resumen de las películas.
-    """
-    filename = str(input("Ingrese el nombre del archivo CSV: "))
-    total, loaded = logic.load_data(control, filename)
-    
-    print('Total de peliculas cargadas: ' + str(total))
-    print('Primeras 5 peliculas cargadas:')
-    headers = ["Fecha de Publicación", "Título Original", "Idioma Original", 
-               "Duración (min)", "Presupuesto", "Ingresos", "Ganancias"]
-    first_five_movies = [
-        [
-            movie['release_date'],
-            movie['title'],
-            movie['original_language'],
-            movie['runtime'],
-            movie['budget'],
-            movie['revenue'],
-            movie['revenue'] - movie['budget']
-        ]
-        for movie in loaded[:5]
-    ]
-    print(tabulate(first_five_movies, headers=headers, tablefmt='grid'))
-
-    print("\nÚltimas 5 películas cargadas:")
-    last_five_movies = [
-        [
-            movie['release_date'],
-            movie['title'],
-            movie['original_language'],
-            movie['runtime'],
-            movie['budget'],
-            movie['revenue'],
-            movie['revenue'] - movie['budget']
-        ]
-        for movie in loaded[-5:]
-    ]
-    print(tabulate(last_five_movies, headers=headers, tablefmt='grid'))
-    
-
-def print_data(control, id):
-    """
-        Función que imprime un dato dado su ID
-    """
-    data = logic.get_data(control, id)
-    
-    if data:
-        # Si el dato es una película, imprimimos sus detalles
-        print("Información del dato:")
-        print("  ID: " + str(data['id']))
-        print("  Título: " + str(data['title']))
-        print("  Idioma original: " + str(data['original_language']))
-        print("  Fecha de lanzamiento: " + str(data['release_date']))
-        print("  Presupuesto: " + str(data['budget']))
-        print("  Recaudación: " + str(data['revenue']))
-        print("  Promedio de votos: " + str(data['vote_average']))
-        print("  Número de votos: " + str(data['vote_count']))
+    filename = input("Ingrese el nombre del archivo CSV: ")
+    total_movies, first_five, last_five = logic.load_data(control, filename)
+    print("\nTotal de películas cargadas: {}".format(total_movies))
+    print("\nPrimeras 5 películas cargadas:")
+    if first_five:
+        print(tabulate([
+            (
+                movie['title'],
+                movie['release_date'],
+                movie['original_language'],
+                movie['runtime'],
+                movie['budget'],
+                movie['revenue'],
+                movie['gain']
+            ) 
+            for movie in first_five
+        ], headers=[
+            "Título", "Fecha", "Idioma", 
+            "Duración (min)", "Presupuesto", 
+            "Ingresos", "Ganancia"
+        ], tablefmt="grid"))
     else:
-        print("No se encontró ningún dato con ID: " + str(id))
+        print("No hay películas para mostrar en las primeras 5 entradas.")
+        
+    print("\nÚltimas 5 películas cargadas:")
+    if last_five:
+        print(tabulate([
+            (
+                movie['title'],
+                movie['release_date'],
+                movie['original_language'],
+                movie['runtime'],
+                movie['budget'],
+                movie['revenue'],
+                movie['gain']
+            ) 
+            for movie in last_five
+        ], headers=[
+            "Título", "Fecha", "Idioma", 
+            "Duración (min)", "Presupuesto", 
+            "Ingresos", "Ganancia"
+        ], tablefmt="grid"))
+    else:
+        print("No hay películas para mostrar en las últimas 5 entradas.")
 
 def print_req_1(control):
     """
-        Función que imprime la solución del Requerimiento 1 en consola
+    Solicita al usuario el título y el idioma, busca la película y muestra los resultados.
     """
-    # TODO: Imprimir el resultado del requerimiento 1
-    pass
+    title = input("Ingrese el título de la película: ").strip()
+    original_language = input("Ingrese el idioma original de la película (ej. 'en' para inglés): ").strip().lower()
+    
+    if not title or not original_language:
+        print("Título o idioma vacío. Por favor, ingrese ambos valores.")
+        return
+
+    movie = logic.req_1(control, title, original_language)
+    
+    if movie:
+        print("\nPelícula encontrada:")
+        if movie['gain'] != "Undefined":
+            gain_formatted = "{:,}".format(int(movie['gain']))
+        else:
+            gain_formatted = movie['gain']
+        movie_info = [[
+            movie['title'], 
+            movie['release_date'], 
+            movie['original_language'], 
+            movie['runtime'], 
+            movie['budget'], 
+            movie['revenue'], 
+            gain_formatted, 
+            movie['vote_average'], 
+            movie['vote_count']
+        ]]
+        print(tabulate(movie_info, headers=["Título", "Fecha", "Idioma", "Duración", 
+                                            "Presupuesto", "Ingresos", "Ganancia", "Calificación", "Votos"], tablefmt="grid"))
+    else:
+        print("No se encontró ninguna película con el título '{}' en el idioma '{}'.".format(title, original_language))
+
 
 
 def print_req_2(control):
-    """
-        Función que imprime la solución del Requerimiento 2 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 2
-    pass
+    n = int(input("El número (N) de ofertas a listar (ej.: 3, 5, 10 o 20): "))
+    idioma = input("Ingrese el idioma original de la película (ej. 'en' para inglés): ").lower()  # Normalizar a minúsculas
+    resultado = logic.req_2(control, idioma, n)
+    if resultado == None:
+        print("No se encontraron películas en ese idioma")
+    total_peliculas = resultado['total_peliculas']
+    peliculas = resultado['peliculas']
+    headers = ["Fecha de publicación", "Título", "Presupuesto", "Recaudación", "Ganancia", "Duración (minutos)", "Puntaje", "Estado"]
+    table_data = [
+        [
+            movie['Fecha de publicación'], 
+            movie['Título'], 
+            movie['Presupuesto'], 
+            movie['Recaudación'], 
+            movie['Ganancia'], 
+            movie['Duración (minutos)'], 
+            movie['Puntaje de calificación'],
+            movie['Estado']
+        ]
+        for movie in peliculas
+    ]
+    print(f"Total de películas en el idioma '{idioma}': {total_peliculas}")
+    print(tabulate(table_data, headers, tablefmt="grid"))
 
 
 def print_req_3(control):
     """
-        Función que imprime la solución del Requerimiento 3 en consola
+    Solicita al usuario el idioma y el rango de fechas, ejecuta el requerimiento 3 y muestra los resultados.
     """
-    # TODO: Imprimir el resultado del requerimiento 3
-    pass
+    print("\nEjecutar Requerimiento 3: Listar películas por idioma y periodo de tiempo")
+    language = input("Ingrese el idioma original de publicación (ej. 'en', 'fr', 'zh'): ").strip().lower()
+    start_date = input("Ingrese la fecha inicial del periodo (formato 'YYYY-MM-DD'): ").strip()
+    end_date = input("Ingrese la fecha final del periodo (formato 'YYYY-MM-DD'): ").strip()
+    
+    if not language or not start_date or not end_date:
+        print("Idioma o fechas vacías. Por favor, ingrese todos los valores.")
+        return
 
+    result = logic.req_3(control, language, start_date, end_date)
+    
+    if "error" in result:
+        print("Error: {}".format(result['error']))
+        return
+    
+    print("\nNúmero total de películas que cumplen el criterio: {}".format(result['total']))
+    if result['total'] > 0:
+        print("Tiempo promedio de duración: {:.2f} minutos\n".format(result['average_duration']))
+    
+    if result['total'] == 0:
+        print("No se encontraron películas que cumplan con los criterios especificados.")
+        return
+    
+    print("Películas encontradas:")
+    print(tabulate(
+        [
+            (
+                movie['release_date'],
+                movie['title'],
+                movie['budget'],
+                movie['revenue'],
+                movie['gain'],
+                movie['runtime'],
+                movie['vote_average'],
+                movie['status']
+            ) 
+            for movie in result['movies']
+        ],
+        headers=[
+            "Fecha de Publicación",
+            "Título Original",
+            "Presupuesto",
+            "Ingresos",
+            "Ganancia",
+            "Duración (min)",
+            "Calificación",
+            "Estado"
+        ],
+        tablefmt="grid"
+    ))
 
 def print_req_4(control):
-    """
-        Función que imprime la solución del Requerimiento 4 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 4
-    pass
+    estado = input("Ingrese el estado de producción de la película (ej.: 'Released', 'Rumored', etc): ").strip()
+    start_date = input("Ingrese la fecha inicial del periodo (formato 'YYYY-MM-DD'): ").strip()
+    end_date = input("Ingrese la fecha final del periodo (formato 'YYYY-MM-DD'): ").strip()
+    
+    if not estado or not start_date or not end_date:
+        print("Estado o fechas vacías")
+    result = logic.req_4(control, estado, start_date, end_date)
+    
+    if result is None:
+        print("No se encontraron películas con ese estado")
+    
+    print("\nNúmero total de películas que cumplen el criterio: "+str(result['total']))
+    if result['total'] > 0:
+        print("Tiempo promedio de duración: "+str(result['average_duration'])+" minutos\n")
+    if result['total'] == 0:
+        print("No se encontraron películas que cumplan con los criterios especificados.")
+        return
+    
+    print("Películas encontradas:")
+    print(tabulate(
+        [
+            (
+                movie['release_date'],
+                movie['title'],
+                movie['budget'],
+                movie['revenue'],
+                movie['gain'],
+                movie['runtime'],
+                movie['vote_average'],
+                movie['original_language']
+            ) 
+            for movie in result['movies']
+        ],
+        headers=[
+            "Fecha de Publicación",
+            "Título Original",
+            "Presupuesto",
+            "Ingresos",
+            "Ganancia",
+            "Duración (min)",
+            "Calificación",
+            "Idioma"
+        ],
+        tablefmt="grid"
+    ))
+
 
 
 def print_req_5(control):
