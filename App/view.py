@@ -242,35 +242,170 @@ def print_req_4(control):
 
 
 def print_req_5(control):
-    """
-        Función que imprime la solución del Requerimiento 5 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 5
-    pass
+    # Solicitar el rango de presupuesto y las fechas
+    budget_range = input("Ingrese el rango de presupuesto (ej. '1000-1999'): ").strip()
+    start_date = input("Ingrese la fecha inicial del periodo (formato 'YYYY-MM-DD'): ").strip()
+    end_date = input("Ingrese la fecha final del periodo (formato 'YYYY-MM-DD'): ").strip()
+    
+    result = logic.req_5(control, budget_range, start_date, end_date)
+    
+    print("Número total de películas que cumplen el criterio: " + str((result['total'])))
+    if result['total'] > 0:
+        print("Presupuesto promedio: " + str((result['average_budget'])))
+    
+    print(tabulate(
+        [
+            (
+                movie['release_date'],
+                movie['title'],
+                movie['budget'],
+                movie['revenue'],
+                movie['gain'],
+                movie['runtime'],
+                movie['vote_average'],
+                movie['original_language']
+            ) 
+            for movie in result['movies']
+        ],
+        headers=[
+            "Fecha de Publicación",
+            "Título Original",
+            "Presupuesto",
+            "Ingresos",
+            "Ganancia",
+            "Duración (min)",
+            "Calificación",
+            "Idioma"
+        ],
+        tablefmt="grid"
+    ))
 
 
 def print_req_6(control):
-    """
-        Función que imprime la solución del Requerimiento 6 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 6
-    pass
 
+    language = input("Ingrese el idioma original de publicación (ej. 'en', 'fr', 'zh'): ").strip().lower()
+    start_year = input("Ingrese el año inicial del periodo (ej.: '1998'): ").strip()
+    end_year = input("Ingrese el año final del periodo (ej.: '2024'): ").strip()
+
+    if not language or not start_year or not end_year:
+        print("Idioma o años vacíos. Por favor, ingrese todos los valores.")
+        return
+
+    result = logic.req_6(control, language, start_year, end_year)
+    
+    if not result:
+        print("No se encontraron películas en el idioma " + str(language) + " entre los años " + str(start_year) + " y " + str(end_year))
+        return
+
+    print("Películas en el idioma " + str(language) + " entre los años " + str(start_year) + " y " + str(end_year))
+    table_data = []
+    for item in result:
+        highest_movie_title = "None"
+        highest_movie_vote = "None"
+        lowest_movie_title = "None"
+        lowest_movie_vote = "None"
+        
+        if item["highest_rated_movie"]:
+            highest_movie_title = item["highest_rated_movie"]['title']
+            highest_movie_vote = item["highest_rated_movie"]['vote_average']
+        
+        if item["lowest_rated_movie"]:
+            lowest_movie_title = item["lowest_rated_movie"]['title']
+            lowest_movie_vote = item["lowest_rated_movie"]['vote_average']
+
+        table_data.append([
+            item["year"],
+            item["total_movies"],
+            item["avg_votes"],
+            item["total_gain"],
+            highest_movie_title,
+            highest_movie_vote,
+            lowest_movie_title,
+            lowest_movie_vote
+        ])
+
+    headers = ["Año", "Total Películas", "Votación Promedio", "Ganancia Total", 
+               "Película Mejor Votada", "Puntaje Mejor Votación", 
+               "Película Peor Votada", "Puntaje Peor Votación"]
+    print(tabulate(table_data, headers, tablefmt="grid"))
+    
 
 def print_req_7(control):
-    """
-        Función que imprime la solución del Requerimiento 7 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 7
-    pass
+    company_name = input("Ingrese el nombre de la compañía productora: ").strip()
+    start_year = input("Ingrese el año inicial del periodo (ej.: '1998'): ").strip()
+    end_year = input("Ingrese el año final del periodo (ej.: '2024'): ").strip()
+
+    if not company_name or not start_year or not end_year:
+        print("Compañía o años vacíos. Por favor, ingrese todos los valores.")
+        return
+
+    result = logic.req_7(control, company_name, start_year, end_year)
+
+    if not result:
+        print(f"No se encontraron películas producidas por {company_name} entre los años {start_year} y {end_year}.")
+        return
+
+    print(f"Películas producidas por {company_name} entre los años {start_year} y {end_year}:")
+    table_data = []
+    for item in result:
+        highest_movie_title = "None"
+        highest_movie_vote = "None"
+        lowest_movie_title = "None"
+        lowest_movie_vote = "None"
+        
+        if item["highest_rated_movie"]:
+            highest_movie_title = item["highest_rated_movie"]['title']
+            highest_movie_vote = item["highest_rated_movie"]['vote_average']
+        
+        if item["lowest_rated_movie"]:
+            lowest_movie_title = item["lowest_rated_movie"]['title']
+            lowest_movie_vote = item["lowest_rated_movie"]['vote_average']
+
+        table_data.append([
+            item["year"],
+            item["total_movies"],
+            item["avg_votes"],
+            item["total_gain"],
+            highest_movie_title,
+            highest_movie_vote,
+            lowest_movie_title,
+            lowest_movie_vote
+        ])
+    headers = ["Año", "Total Películas", "Votación Promedio", "Ganancia Total", 
+               "Película Mejor Votada", "Puntaje Mejor Votación", 
+               "Película Peor Votada", "Puntaje Peor Votación"]
+    print(tabulate(table_data, headers, tablefmt="grid"))
 
 
 def print_req_8(control):
     """
-        Función que imprime la solución del Requerimiento 8 en consola
+    Solicita al usuario el año y el género de las películas para ejecutar el requerimiento 8.
     """
-    # TODO: Imprimir el resultado del requerimiento 8
-    pass
+    year = input("Ingrese el año (formato: YYYY): ").strip()
+    genre = input("Ingrese el género de la película: ").strip().lower()
+
+    if not year or not genre:
+        print("El año o el género no pueden estar vacíos. Por favor, ingrese ambos valores.")
+        return
+
+    result = logic.req_8(control, year, genre)
+
+    if result["total"] == 0:
+        print(f"No se encontraron películas para el año {year} y género '{genre}'.")
+        return
+
+    print("Películas del género " + str(genre) + " en el año " + str(year:))
+    data = [
+        ["Total de películas", result['total']],
+        ["Promedio de votación", f"{result['avg_vote']:.2f}"],
+        ["Promedio de duración (min)", f"{result['avg_duration']:.2f}"],
+        ["Ganancias acumuladas (USD)", f"{result['total_revenue']:,}"],
+        ["Película con mejor votación", result['highest_rated_movie']['title'] if result['highest_rated_movie'] else "N/A"],
+        ["Puntaje mejor votación", result['highest_rated_movie']['vote_average'] if result['highest_rated_movie'] else "N/A"],
+        ["Película con peor votación", result['lowest_rated_movie']['title'] if result['lowest_rated_movie'] else "N/A"],
+        ["Puntaje peor votación", result['lowest_rated_movie']['vote_average'] if result['lowest_rated_movie'] else "N/A"]
+    ]
+    print(tabulate(data, headers=["Descripción", "Valor"], tablefmt="grid"))
 
 
 # Se crea la lógica asociado a la vista
