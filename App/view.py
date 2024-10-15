@@ -390,7 +390,7 @@ def print_req_8(control):
         print("No se encontraron películas para el año " + str(year) + " y género " + str(genre))
         return
 
-    print("Películas del género " + str(genre) + " en el año " + str(year:))
+    print("Películas del género " + str(genre) + " en el año " + str(year))
     data = [
         ["Total de películas", result['total']],
         ["Promedio de votación", f"{result['avg_vote']:.2f}"],
