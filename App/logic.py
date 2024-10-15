@@ -416,7 +416,7 @@ def req_6(catalog, language, start_year, end_year):
                             highest_rated_movie = movie
                     except ValueError:
                         pass  
-                if lowest_rated_movie is None:
+                if lowest_rated_movie == None:
                     lowest_rated_movie = movie
                 else:
                     try:
@@ -443,11 +443,10 @@ def req_6(catalog, language, start_year, end_year):
 def req_7(catalog, company_name, start_year, end_year):
     start_year = int(start_year)
     end_year = int(end_year)
-
     result = []
     for year in range(start_year, end_year + 1):
         year_list = ms.get(catalog['movies_by_year'], year)
-        if year_list is None:
+        if year_list == None:
             continue
 
         total_movies = 0
@@ -480,11 +479,11 @@ def req_7(catalog, company_name, start_year, end_year):
                     total_gain += movie['gain']
 
                 
-                if highest_rated_movie is None or vote_average > float(highest_rated_movie['vote_average']):
+                if highest_rated_movie == None or vote_average > float(highest_rated_movie['vote_average']):
                     highest_rated_movie = movie
 
                 
-                if lowest_rated_movie is None or vote_average < float(lowest_rated_movie['vote_average']):
+                if lowest_rated_movie == None or vote_average < float(lowest_rated_movie['vote_average']):
                     lowest_rated_movie = movie
 
             current = current['next']
@@ -535,9 +534,9 @@ def req_8(catalog, year, genre):
             total_duration += movie['runtime'] if isinstance(movie['runtime'], (int, float)) else 0
             gain = movie.get('gain', 0)
             total_revenue += gain if isinstance(gain, (int, float)) else 0
-            if highest_rated_movie is None or vote_average > float(highest_rated_movie['vote_average']):
+            if highest_rated_movie == None or vote_average > float(highest_rated_movie['vote_average']):
                 highest_rated_movie = movie
-            if lowest_rated_movie is None or vote_average < float(lowest_rated_movie['vote_average']):
+            if lowest_rated_movie == None or vote_average < float(lowest_rated_movie['vote_average']):
                 lowest_rated_movie = movie
         
         current = current['next']

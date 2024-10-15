@@ -242,7 +242,6 @@ def print_req_4(control):
 
 
 def print_req_5(control):
-    # Solicitar el rango de presupuesto y las fechas
     budget_range = input("Ingrese el rango de presupuesto (ej. '1000-1999'): ").strip()
     start_date = input("Ingrese la fecha inicial del periodo (formato 'YYYY-MM-DD'): ").strip()
     end_date = input("Ingrese la fecha final del periodo (formato 'YYYY-MM-DD'): ").strip()
@@ -287,13 +286,13 @@ def print_req_6(control):
     start_year = input("Ingrese el año inicial del periodo (ej.: '1998'): ").strip()
     end_year = input("Ingrese el año final del periodo (ej.: '2024'): ").strip()
 
-    if not language or not start_year or not end_year:
+    if language == None or start_year == None or  end_year== None:
         print("Idioma o años vacíos. Por favor, ingrese todos los valores.")
         return
 
     result = logic.req_6(control, language, start_year, end_year)
     
-    if not result:
+    if result == None:
         print("No se encontraron películas en el idioma " + str(language) + " entre los años " + str(start_year) + " y " + str(end_year))
         return
 
@@ -335,17 +334,17 @@ def print_req_7(control):
     start_year = input("Ingrese el año inicial del periodo (ej.: '1998'): ").strip()
     end_year = input("Ingrese el año final del periodo (ej.: '2024'): ").strip()
 
-    if not company_name or not start_year or not end_year:
+    if  company_name == None or start_year == None or end_year == None:
         print("Compañía o años vacíos. Por favor, ingrese todos los valores.")
         return
 
     result = logic.req_7(control, company_name, start_year, end_year)
 
-    if not result:
+    if  result == None:
         print(f"No se encontraron películas producidas por {company_name} entre los años {start_year} y {end_year}.")
         return
 
-    print(f"Películas producidas por {company_name} entre los años {start_year} y {end_year}:")
+    print("Películas producidas por" + str(company_name) + " entre los años " + str(start_year) + " y " + str(end_year))
     table_data = []
     for item in result:
         highest_movie_title = "None"
@@ -378,20 +377,17 @@ def print_req_7(control):
 
 
 def print_req_8(control):
-    """
-    Solicita al usuario el año y el género de las películas para ejecutar el requerimiento 8.
-    """
     year = input("Ingrese el año (formato: YYYY): ").strip()
     genre = input("Ingrese el género de la película: ").strip().lower()
 
-    if not year or not genre:
+    if year == None or  genre == None:
         print("El año o el género no pueden estar vacíos. Por favor, ingrese ambos valores.")
         return
 
     result = logic.req_8(control, year, genre)
 
     if result["total"] == 0:
-        print(f"No se encontraron películas para el año {year} y género '{genre}'.")
+        print("No se encontraron películas para el año " + str(year) + " y género " + str(genre))
         return
 
     print("Películas del género " + str(genre) + " en el año " + str(year:))
