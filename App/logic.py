@@ -104,11 +104,16 @@ def get_data(catalog, id):
     return ms.get(catalog, id)
 
 def req_1(catalog, title, original_language):
+    inic = get_time() 
     key = (title, original_language)
     if ms.contains(catalog['movies_by_title_language'], key):
-        return ms.get(catalog['movies_by_title_language'], key)
+        result = ms.get(catalog['movies_by_title_language'], key)
     else:
-        return None
+        result = None
+    fin = get_time() 
+    total_time = delta_time(inic, fin)  
+
+    return result,total_time
  
 
 def req_2(catalog, language, n):
@@ -160,15 +165,18 @@ def req_2(catalog, language, n):
     for i in range(num_peliculas):
         pelicula = sl.get_element(sorted_movie_list, i)
         peliculas.append(pelicula)
-
-    return {
+    fin = get_time() 
+    total_time = delta_time(inic, fin)  
+    rta= {
         'total_peliculas': total_movies,
-        'peliculas': peliculas
+        'peliculas': peliculas,
     }
+    return rta, total_time
 def sort_crit2(movie1, movie2):
     return movie1['Converted Fecha'] > movie2['Converted Fecha']
 
 def req_3(catalog, language, start_date_str, end_date_str):
+    inic = get_time() 
     start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
     end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
     language_list = ms.get(catalog['movies_by_language'], language)
@@ -192,17 +200,20 @@ def req_3(catalog, language, start_date_str, end_date_str):
                 total_duration += movie['runtime']
         
         current = current['next']
-    matching_movies.sort(key=lambda x: x['release_date'], reverse=True)
-
-    total_movies = len(matching_movies)
+    linked_movie_list = sl.new_list()
+    for movie in matching_movies:
+        sl.add_last(linked_movie_list, movie)
+    sorted_movie_list = sl.merge_sort(linked_movie_list, sort_crit)
+    total_movies = sl.size(sorted_movie_list)
     if total_movies > 0:
         average_duration = (total_duration / total_movies) 
-    else: 
+    else:
         average_duration=0
     if total_movies > 20:
-        matching_movies = matching_movies[:10]
+        sorted_movie_list = sl.sub_list(sorted_movie_list, 0, 10)
     formatted_movies = []
-    for movie in matching_movies:
+    for i in range(sl.size(sorted_movie_list)):
+        movie = sl.get_element(sorted_movie_list, i)
         formatted_movie = {
             "release_date": movie['release_date'],
             "title": movie['title'],
@@ -214,12 +225,14 @@ def req_3(catalog, language, start_date_str, end_date_str):
             "status": movie['status']
         }
         formatted_movies.append(formatted_movie)
-
-    return {
+    fin = get_time() 
+    total_time = delta_time(inic, fin)  
+    rta= {
         "total": total_movies,
         "average_duration": average_duration,
         "movies": formatted_movies
     }
+    return rta,total_time
 def format_number(value):
     if isinstance(value, str):
         return value
@@ -241,6 +254,7 @@ def sort_crit(movie1, movie2):
     date2 = datetime.strptime(movie2['release_date'], '%Y-%m-%d')
     return date1 > date2
 def req_4(catalog, estado, inicio, fin):
+    inic = get_time() 
     start_date = datetime.strptime(inicio, '%Y-%m-%d')
     end_date = datetime.strptime(fin, '%Y-%m-%d')
     status_list = ms.get(catalog['movies_by_status'], estado.strip())
@@ -291,15 +305,18 @@ def req_4(catalog, estado, inicio, fin):
             "original_language": movie['original_language'] 
         }
         formatted_movies.append(formatted_movie)
-    return {
+    fin = get_time() 
+    total_time = delta_time(inic, fin)  
+    rta={
         "total": total_movies,
         "average_duration": average_duration,
         "movies": formatted_movies
     }
+    return rta,total_time
 
  
 def req_5(catalog, budget_range, start_date_str, end_date_str):
-    
+    inic = get_time() 
     start_budget, end_budget = map(int, budget_range.split('-'))
     start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
     end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
@@ -325,20 +342,21 @@ def req_5(catalog, budget_range, start_date_str, end_date_str):
                     total_budget += float(movie['budget'])
                     total_movies += 1
             current = current['next']
-    
- 
-    matching_movies.sort(key=lambda x: x['release_date'], reverse=True)
+    linked_movie_list = sl.new_list()
+    for movie in matching_movies:
+        sl.add_last(linked_movie_list, movie)
+    sorted_movie_list = sl.merge_sort(linked_movie_list, sort_crit)
     if total_movies > 0:
         average_budget = total_budget / total_movies  
     else: 
         average_budget=0
 
     if total_movies > 20:
-        matching_movies = matching_movies[:10]
-    
+        sorted_movie_list = sl.sub_list(sorted_movie_list, 0, 10)
 
     formatted_movies = []
-    for movie in matching_movies:
+    for i in range(sl.size(sorted_movie_list)):
+        movie = sl.get_element(sorted_movie_list, i)
         formatted_movie = {
             "release_date": movie['release_date'],
             "title": movie['title'],
@@ -350,14 +368,18 @@ def req_5(catalog, budget_range, start_date_str, end_date_str):
             "original_language": movie['original_language']
         }
         formatted_movies.append(formatted_movie)
-
-    return {
+    
+    fin = get_time() 
+    total_time = delta_time(inic, fin)  
+    rta= {
         "total": total_movies,
         "average_budget": average_budget,
         "movies": formatted_movies
     }
+    return rta,total_time
 
 def req_6(catalog, language, start_year, end_year):
+    inic = get_time() 
     start_year = int(start_year)
     end_year = int(end_year)
     result = []
@@ -417,12 +439,14 @@ def req_6(catalog, language, start_year, end_year):
                 "highest_rated_movie": highest_rated_movie,
                 "lowest_rated_movie": lowest_rated_movie
             })
-
-    return result
+    fin = get_time() 
+    total_time = delta_time(inic, fin)  
+    return result,total_time
 
 
 
 def req_7(catalog, company_name, start_year, end_year):
+    inic = get_time() 
     start_year = int(start_year)
     end_year = int(end_year)
     result = []
@@ -482,13 +506,14 @@ def req_7(catalog, company_name, start_year, end_year):
                     "highest_rated_movie": highest_rated_movie,
                     "lowest_rated_movie": lowest_rated_movie
                 })
-
-    return result
+    fin = get_time() 
+    total_time = delta_time(inic, fin)  
+    return result,total_time
 
 
 
 def req_8(catalog, year, genre):
-
+    inic = get_time() 
     year = int(year)
     genre = genre.lower()
     year_list = ms.get(catalog['movies_by_year'], year)
@@ -529,7 +554,7 @@ def req_8(catalog, year, genre):
     avg_vote = total_votes / total_movies if total_movies > 0 else 0
     avg_duration = total_duration / total_movies if total_movies > 0 else 0
 
-    return {
+    rta={
         "total": total_movies,
         "avg_vote": avg_vote,
         "avg_duration": avg_duration,
@@ -537,7 +562,9 @@ def req_8(catalog, year, genre):
         "highest_rated_movie": highest_rated_movie,
         "lowest_rated_movie": lowest_rated_movie
     }
-
+    fin = get_time() 
+    total_time = delta_time(inic, fin)  
+    return rta,total_time
 # Funciones para medir tiempos de ejecucion
 
 def get_time():

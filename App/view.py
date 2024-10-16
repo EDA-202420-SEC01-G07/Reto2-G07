@@ -85,7 +85,7 @@ def print_req_1(control):
         print("Título o idioma vacío. Por favor, ingrese ambos valores.")
         return
 
-    movie = logic.req_1(control, title, original_language)
+    movie, total_time = logic.req_1(control, title, original_language)
     
     if movie:
         print("\nPelícula encontrada:")
@@ -114,7 +114,7 @@ def print_req_1(control):
 def print_req_2(control):
     n = int(input("El número (N) de ofertas a listar (ej.: 3, 5, 10 o 20): "))
     idioma = input("Ingrese el idioma original de la película (ej. 'en' para inglés): ").lower()  # Normalizar a minúsculas
-    resultado = logic.req_2(control, idioma, n)
+    resultado,total_time = logic.req_2(control, idioma, n)
     if resultado == None:
         print("No se encontraron películas en ese idioma")
     total_peliculas = resultado['total_peliculas']
@@ -133,38 +133,26 @@ def print_req_2(control):
         ]
         for movie in peliculas
     ]
-    print(f"Total de películas en el idioma '{idioma}': {total_peliculas}")
+    print("Total de películas en el idioma: "+str(total_peliculas))
+    print("El tiempo de ejecución es de "+str(total_time)+"(ms)")
     print(tabulate(table_data, headers, tablefmt="grid"))
 
 
 def print_req_3(control):
-    """
-    Solicita al usuario el idioma y el rango de fechas, ejecuta el requerimiento 3 y muestra los resultados.
-    """
-    print("\nEjecutar Requerimiento 3: Listar películas por idioma y periodo de tiempo")
     language = input("Ingrese el idioma original de publicación (ej. 'en', 'fr', 'zh'): ").strip().lower()
     start_date = input("Ingrese la fecha inicial del periodo (formato 'YYYY-MM-DD'): ").strip()
     end_date = input("Ingrese la fecha final del periodo (formato 'YYYY-MM-DD'): ").strip()
-    
     if not language or not start_date or not end_date:
         print("Idioma o fechas vacías. Por favor, ingrese todos los valores.")
-        return
-
-    result = logic.req_3(control, language, start_date, end_date)
+    result,total_time = logic.req_3(control, language, start_date, end_date)
     
-    if "error" in result:
-        print("Error: {}".format(result['error']))
-        return
-    
-    print("\nNúmero total de películas que cumplen el criterio: {}".format(result['total']))
+    print("\nNúmero total de películas que cumplen el criterio: "+str(result['total']))
     if result['total'] > 0:
-        print("Tiempo promedio de duración: {:.2f} minutos\n".format(result['average_duration']))
+        print("Tiempo promedio de duración:"+ str(result['average_duration'])+"(mins)")
     
     if result['total'] == 0:
         print("No se encontraron películas que cumplan con los criterios especificados.")
-        return
-    
-    print("Películas encontradas:")
+    print("El tiempo de ejecución es de "+str(total_time)+"(ms)")
     print(tabulate(
         [
             (
@@ -199,7 +187,7 @@ def print_req_4(control):
     
     if not estado or not start_date or not end_date:
         print("Estado o fechas vacías")
-    result = logic.req_4(control, estado, start_date, end_date)
+    result,total_time = logic.req_4(control, estado, start_date, end_date)
     
     if result is None:
         print("No se encontraron películas con ese estado")
@@ -210,7 +198,7 @@ def print_req_4(control):
     if result['total'] == 0:
         print("No se encontraron películas que cumplan con los criterios especificados.")
         return
-    
+    print("El tiempo de ejecución es de "+str(total_time)+"(ms)")
     print("Películas encontradas:")
     print(tabulate(
         [
@@ -246,12 +234,12 @@ def print_req_5(control):
     start_date = input("Ingrese la fecha inicial del periodo (formato 'YYYY-MM-DD'): ").strip()
     end_date = input("Ingrese la fecha final del periodo (formato 'YYYY-MM-DD'): ").strip()
     
-    result = logic.req_5(control, budget_range, start_date, end_date)
+    result,total_time = logic.req_5(control, budget_range, start_date, end_date)
     
     print("Número total de películas que cumplen el criterio: " + str((result['total'])))
     if result['total'] > 0:
         print("Presupuesto promedio: " + str((result['average_budget'])))
-    
+    print("El tiempo de ejecución es de "+str(total_time)+"(ms)")
     print(tabulate(
         [
             (
@@ -288,14 +276,14 @@ def print_req_6(control):
 
     if language == None or start_year == None or  end_year== None:
         print("Idioma o años vacíos. Por favor, ingrese todos los valores.")
-        return
 
-    result = logic.req_6(control, language, start_year, end_year)
+
+    result,total_time = logic.req_6(control, language, start_year, end_year)
     
     if result == None:
         print("No se encontraron películas en el idioma " + str(language) + " entre los años " + str(start_year) + " y " + str(end_year))
-        return
-
+        
+    print("El tiempo de ejecución es de "+str(total_time)+"(ms)")
     print("Películas en el idioma " + str(language) + " entre los años " + str(start_year) + " y " + str(end_year))
     table_data = []
     for item in result:
@@ -339,13 +327,14 @@ def print_req_7(control):
         print("Compañía o años vacíos. Por favor, ingrese todos los valores.")
         return
 
-    result = logic.req_7(control, company_name, start_year, end_year)
+    result,total_time = logic.req_7(control, company_name, start_year, end_year)
 
     if  result == None:
-        print(f"No se encontraron películas producidas por {company_name} entre los años {start_year} y {end_year}.")
-        return
+        print("No se encontraron películas producidas por esa compañía entre los años brindados")
+  
 
     print("Películas producidas por" + str(company_name) + " entre los años " + str(start_year) + " y " + str(end_year))
+    print("El tiempo de ejecución es de "+str(total_time)+"(ms)")
     table_data = []
     for item in result:
         highest_movie_title = "None"
@@ -384,14 +373,12 @@ def print_req_8(control):
 
     if year == None or  genre == None:
         print("El año o el género no pueden estar vacíos. Por favor, ingrese ambos valores.")
-        return
 
-    result = logic.req_8(control, year, genre)
+    result,total_time = logic.req_8(control, year, genre)
 
     if result["total"] == 0:
         print("No se encontraron películas para el año " + str(year) + " y género " + str(genre))
-        return
-
+    print("El tiempo de ejecución es de "+str(total_time)+"(ms)")
     print("Películas del género " + str(genre) + " en el año " + str(year))
     data = [
         ["Total de películas", result['total']],
