@@ -536,14 +536,25 @@ def req_8(catalog, year, genre):
     current = year_list['first']
     while current:
         movie = current['info']
-        movie_genres = [g['name'].lower() for g in json.loads(movie['genres'])]
+        genres_data = json.loads(movie['genres'])
+        for genero_prueba in genres_data:
+            movie_genres = genero_prueba['name'].lower()
         if genre in movie_genres and movie['status'] == 'Released':
             total_movies += 1
-            vote_average = float(movie['vote_average']) if movie['vote_average'] else 0
+            if movie['vote_average']:
+                vote_average = float(movie['vote_average'])
+            else:
+                vote_average = 0
             total_votes += vote_average
-            total_duration += movie['runtime'] if isinstance(movie['runtime'], (int, float)) else 0
+            if isinstance(movie['runtime'], (int, float)):
+                total_duration += movie['runtime']
+            else:
+                total_duration = 0
             gain = movie.get('gain', 0)
-            total_revenue += gain if isinstance(gain, (int, float)) else 0
+            if isinstance(gain, (int, float)):
+                total_revenue += gain
+            else:
+                total_revenue = 0
             if highest_rated_movie == None or vote_average > float(highest_rated_movie['vote_average']):
                 highest_rated_movie = movie
             if lowest_rated_movie == None or vote_average < float(lowest_rated_movie['vote_average']):
@@ -551,8 +562,14 @@ def req_8(catalog, year, genre):
 
         current = current['next']
 
-    avg_vote = total_votes / total_movies if total_movies > 0 else 0
-    avg_duration = total_duration / total_movies if total_movies > 0 else 0
+    if total_movies > 0:
+        avg_vote = total_votes / total_movies
+    else:
+        avg_vote = 0
+    if total_movies > 0:
+        avg_duration = total_duration / total_movies 
+    else:
+        avg_duration = 0
 
     rta={
         "total": total_movies,
