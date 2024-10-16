@@ -17,12 +17,12 @@ def new_logic():
     Crea el catálogo con una sola estructura de datos (un mapa).
     """
     catalog = {
-        'movies_by_id': ms.new_map(1000, 0.7),
-        'movies_by_language': ms.new_map(1000, 0.7),
-        'movies_by_year': ms.new_map(1000, 0.7),
-        'movies_by_company': ms.new_map(1000, 0.7),
-        'movies_by_title_language': ms.new_map(1000, 0.7),
-        'movies_by_status': ms.new_map(1000, 0.7)
+        'movies_by_id': ms.new_map(1000, 1.0),
+        'movies_by_language': ms.new_map(1000, 1.0),
+        'movies_by_year': ms.new_map(1000, 1.0),
+        'movies_by_company': ms.new_map(1000, 1.0),
+        'movies_by_title_language': ms.new_map(1000, 1.0),
+        'movies_by_status': ms.new_map(1000, 1.0)
     }
     return catalog
 
@@ -42,8 +42,14 @@ def load_data(catalog, filename):
             movie_year = get_year(movie['release_date'])
             movie_language = movie['original_language'].strip().lower()
             movie_companies = json.loads(movie['production_companies'])
-            revenue = movie['revenue'] if movie['revenue'] and movie['revenue'] != '0' else "Undefined"
-            budget = movie['budget'] if movie['budget'] and movie['budget'] != '0' else "Undefined"
+            if movie['revenue'] and movie['revenue'] != '0':
+                revenue = movie['revenue'] 
+            else:
+                revenue= "Undefined"
+            if movie['budget'] and movie['budget'] != '0': 
+                budget = movie['budget'] 
+            else:
+                budget="Undefined"
             movie['revenue'] = revenue
             movie['budget'] = budget
             if revenue != "Undefined" and budget != "Undefined":
@@ -51,7 +57,10 @@ def load_data(catalog, filename):
             else:
                 gain = "Undefined"
             movie['gain'] = gain
-            movie['runtime'] = float(movie['runtime']) if movie['runtime'] else "Undefined"
+            if movie['runtime']: 
+                movie['runtime'] = float(movie['runtime']) 
+            else:
+                movie['runtime'] ="Undefined"
 
             key = (movie['title'], movie_language)
             ms.put(catalog['movies_by_title_language'], key, movie)
@@ -92,23 +101,15 @@ def get_year(release_date):
     return date_obj.year
 
 def get_data(catalog, id):
-    """
-    Retorna los datos de una película dado su ID.
-    """
     return ms.get(catalog, id)
 
 def req_1(catalog, title, original_language):
-    """
-    Retorna el resultado del requerimiento 1
-    """
     key = (title, original_language)
-    
     if ms.contains(catalog['movies_by_title_language'], key):
         return ms.get(catalog['movies_by_title_language'], key)
     else:
         return None
  
-
 
 def req_2(catalog, language, n):
     inic= get_time()
@@ -168,21 +169,8 @@ def sort_crit2(movie1, movie2):
     return movie1['Converted Fecha'] > movie2['Converted Fecha']
 
 def req_3(catalog, language, start_date_str, end_date_str):
-    """
-    Lista las películas en un idioma específico dentro de un rango de fechas.
-
-    Parámetros:
-        catalog (dict): El catálogo de películas.
-        language (str): Idioma original de publicación (ej. 'en', 'fr', 'zh').
-        start_date_str (str): Fecha inicial en formato '%Y-%m-%d'.
-        end_date_str (str): Fecha final en formato '%Y-%m-%d'.
-
-    Retorna:
-        dict: Contiene el número total de películas, tiempo promedio de duración y la lista de películas.
-    """
     start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
     end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
-
     language_list = ms.get(catalog['movies_by_language'], language)
     if language_list is None:
         return {
@@ -207,7 +195,10 @@ def req_3(catalog, language, start_date_str, end_date_str):
     matching_movies.sort(key=lambda x: x['release_date'], reverse=True)
 
     total_movies = len(matching_movies)
-    average_duration = (total_duration / total_movies) if total_movies > 0 else 0
+    if total_movies > 0:
+        average_duration = (total_duration / total_movies) 
+    else: 
+        average_duration=0
     if total_movies > 20:
         matching_movies = matching_movies[:10]
     formatted_movies = []
@@ -230,10 +221,6 @@ def req_3(catalog, language, start_date_str, end_date_str):
         "movies": formatted_movies
     }
 def format_number(value):
-    """
-    Formatea un número con comas como separadores de miles.
-    Si el valor es 'Undefined', lo retorna tal cual.
-    """
     if isinstance(value, str):
         return value
     elif isinstance(value, (int, float)):
@@ -242,9 +229,6 @@ def format_number(value):
         return "Undefined"
 
 def format_gain(gain):
-    """
-    Formatea la ganancia, manejando el caso 'Undefined'.
-    """
     if gain == "Undefined":
         return gain
     elif isinstance(gain, (int, float)):
@@ -344,10 +328,10 @@ def req_5(catalog, budget_range, start_date_str, end_date_str):
     
  
     matching_movies.sort(key=lambda x: x['release_date'], reverse=True)
-    
-
-    average_budget = total_budget / total_movies if total_movies > 0 else 0
-    
+    if total_movies > 0:
+        average_budget = total_budget / total_movies  
+    else: 
+        average_budget=0
 
     if total_movies > 20:
         matching_movies = matching_movies[:10]
@@ -373,17 +357,14 @@ def req_5(catalog, budget_range, start_date_str, end_date_str):
         "movies": formatted_movies
     }
 
-
 def req_6(catalog, language, start_year, end_year):
     start_year = int(start_year)
     end_year = int(end_year)
-    
     result = []
+
     for year in range(start_year, end_year + 1):
         year_list = ms.get(catalog['movies_by_year'], year)
-        if year_list == None:
-            continue
-        
+
         total_movies = 0
         total_votes = 0
         total_runtime = 0
@@ -392,115 +373,119 @@ def req_6(catalog, language, start_year, end_year):
         highest_rated_movie = None
         lowest_rated_movie = None
 
-        current = year_list['first']
-        while current:
-            movie = current['info']
-            if movie['original_language'].lower() == language.lower() and movie['status'] == 'Released':
-                total_movies += 1
-                try:
-                    vote_average = float(movie['vote_average'])
-                    total_votes += vote_average
-                except ValueError:
-                    
-                    vote_average = 0
-                total_runtime += movie['runtime'] if isinstance(movie['runtime'], (int, float)) else 0
-                if movie['gain'] != "Undefined":
-                    total_gain += movie['gain']
-                if movie['revenue'] != "Undefined":
-                    total_earnings += float(movie['revenue'])
-                if highest_rated_movie == None:
-                    highest_rated_movie = movie
-                else:
-                    try:
-                        if vote_average > float(highest_rated_movie['vote_average']):
-                            highest_rated_movie = movie
-                    except ValueError:
-                        pass  
-                if lowest_rated_movie == None:
-                    lowest_rated_movie = movie
-                else:
-                    try:
-                        if vote_average < float(lowest_rated_movie['vote_average']):
-                            lowest_rated_movie = movie
-                    except ValueError:
-                        pass              
-            current = current['next']
+        if year_list != None:
+            current = year_list['first']
+            while current:
+                movie = current['info']
+                if movie['original_language'].lower() == language.lower() and movie['status'] == 'Released':
+                    total_movies += 1
+                    if 'vote_average' in movie and isinstance(movie['vote_average'], (int, float)):
+                        vote_average = float(movie['vote_average'])
+                        total_votes += vote_average
+                    else:
+                        vote_average = 0
+
+                    if isinstance(movie['runtime'], (int, float)):
+                        total_runtime += movie['runtime'] 
+                    else:
+                        total_runtime = 0
+
+                    if isinstance(movie['gain'], (int, float)):
+                        total_gain += movie['gain']
+
+                    if isinstance(movie['revenue'], (int, float)):
+                        total_earnings += float(movie['revenue'])
+                    if highest_rated_movie is None or (isinstance(movie['vote_average'], (int, float)) and vote_average > float(highest_rated_movie['vote_average'])):
+                        highest_rated_movie = movie
+                    if lowest_rated_movie is None or (isinstance(movie['vote_average'], (int, float)) and vote_average < float(lowest_rated_movie['vote_average'])):
+                        lowest_rated_movie = movie
+
+                current = current['next']
+
         if total_movies > 0:
             avg_votes = total_votes / total_movies
-            avg_runtime = total_runtime / total_movies if total_runtime > 0 else "None"
+            if total_runtime > 0:
+                avg_runtime = total_runtime / total_movies 
+            else: 
+                avg_runtime="None"
             result.append({
                 "year": year,
                 "total_movies": total_movies,
                 "avg_votes": avg_votes,
+                "avg_runtime": avg_runtime,
                 "total_gain": total_gain if total_gain > 0 else "Undefined",
                 "highest_rated_movie": highest_rated_movie,
                 "lowest_rated_movie": lowest_rated_movie
             })
 
     return result
+
 
 
 def req_7(catalog, company_name, start_year, end_year):
     start_year = int(start_year)
     end_year = int(end_year)
     result = []
+    
     for year in range(start_year, end_year + 1):
         year_list = ms.get(catalog['movies_by_year'], year)
-        if year_list == None:
-            continue
+        if year_list is not None:
+            total_movies = 0
+            total_votes = 0
+            total_runtime = 0
+            total_gain = 0
+            highest_rated_movie = None
+            lowest_rated_movie = None
 
-        total_movies = 0
-        total_votes = 0
-        total_runtime = 0
-        total_gain = 0
-        highest_rated_movie = None
-        lowest_rated_movie = None
+            current = year_list['first']
+            while current:
+                movie = current['info']
 
-        current = year_list['first']
-        while current:
-            movie = current['info']
-            
-            production_companies = json.loads(movie['production_companies'])
-            if any(company['name'].lower() == company_name.lower() for company in production_companies):
-                total_movies += 1
+                production_companies = json.loads(movie['production_companies'])
+                for company in production_companies:
+                    if company['name'].lower() == company_name.lower():
+                        total_movies += 1
+        
+                        if 'vote_average' in movie and isinstance(movie['vote_average'], (int, float)):
+                            vote_average = float(movie['vote_average'])
+                            total_votes += vote_average
+                        else:
+                            vote_average = 0
 
-                
-                try:
-                    vote_average = float(movie['vote_average'])
-                    total_votes += vote_average
-                except ValueError:
-                    vote_average = 0
+                        if isinstance(movie['runtime'], (int, float)):     
+                            total_runtime += movie['runtime'] 
+                    
+                        if isinstance(movie['gain'], (int, float)):
+                            total_gain += movie['gain']
+                        
+                        if highest_rated_movie is None or (isinstance(movie['vote_average'], (int, float)) and vote_average > float(highest_rated_movie['vote_average'])):
+                            highest_rated_movie = movie
+                        
+                       
+                        if lowest_rated_movie is None or (isinstance(movie['vote_average'], (int, float)) and vote_average < float(lowest_rated_movie['vote_average'])):
+                            lowest_rated_movie = movie
 
-                
-                total_runtime += movie['runtime'] if isinstance(movie['runtime'], (int, float)) else 0
+                current = current['next']
 
-                
-                if movie['gain'] != "Undefined":
-                    total_gain += movie['gain']
-
-                
-                if highest_rated_movie == None or vote_average > float(highest_rated_movie['vote_average']):
-                    highest_rated_movie = movie
-
-                
-                if lowest_rated_movie == None or vote_average < float(lowest_rated_movie['vote_average']):
-                    lowest_rated_movie = movie
-
-            current = current['next']
-
-        if total_movies > 0:
-            avg_votes = total_votes / total_movies
-            avg_runtime = total_runtime / total_movies if total_runtime > 0 else "N/A"
-            result.append({
-                "year": year,
-                "total_movies": total_movies,
-                "avg_votes": avg_votes,
-                "total_gain": total_gain if total_gain > 0 else "Undefined",
-                "highest_rated_movie": highest_rated_movie,
-                "lowest_rated_movie": lowest_rated_movie
-            })
+            if total_movies > 0:
+                avg_votes = total_votes / total_movies
+                if total_runtime > 0: 
+                    avg_runtime = total_runtime / total_movies 
+                else:
+                    avg_runtime="Undefined"
+                result.append({
+                    "year": year,
+                    "total_movies": total_movies,
+                    "avg_votes": avg_votes,
+                    "avg_runtime": avg_runtime,
+                    "total_gain": total_gain if total_gain > 0 else "Undefined",
+                    "highest_rated_movie": highest_rated_movie,
+                    "lowest_rated_movie": lowest_rated_movie
+                })
 
     return result
+
+
 
 def req_8(catalog, year, genre):
 
@@ -538,7 +523,7 @@ def req_8(catalog, year, genre):
                 highest_rated_movie = movie
             if lowest_rated_movie == None or vote_average < float(lowest_rated_movie['vote_average']):
                 lowest_rated_movie = movie
-        
+
         current = current['next']
 
     avg_vote = total_votes / total_movies if total_movies > 0 else 0
@@ -552,7 +537,6 @@ def req_8(catalog, year, genre):
         "highest_rated_movie": highest_rated_movie,
         "lowest_rated_movie": lowest_rated_movie
     }
-
 
 # Funciones para medir tiempos de ejecucion
 

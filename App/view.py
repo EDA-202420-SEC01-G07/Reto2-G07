@@ -317,13 +317,14 @@ def print_req_6(control):
             item["total_movies"],
             item["avg_votes"],
             item["total_gain"],
+            item["avg_runtime"],
             highest_movie_title,
             highest_movie_vote,
             lowest_movie_title,
             lowest_movie_vote
         ])
 
-    headers = ["Año", "Total Películas", "Votación Promedio", "Ganancia Total", 
+    headers = ["Año", "Total Películas", "Votación Promedio", "Ganancia Total", "Tiempo Promedio"
                "Película Mejor Votada", "Puntaje Mejor Votación", 
                "Película Peor Votada", "Puntaje Peor Votación"]
     print(tabulate(table_data, headers, tablefmt="grid"))
@@ -365,12 +366,13 @@ def print_req_7(control):
             item["total_movies"],
             item["avg_votes"],
             item["total_gain"],
+            item["avg_runtime"],
             highest_movie_title,
             highest_movie_vote,
             lowest_movie_title,
             lowest_movie_vote
         ])
-    headers = ["Año", "Total Películas", "Votación Promedio", "Ganancia Total", 
+    headers = ["Año", "Total Películas", "Votación Promedio", "Ganancia Total", "Tiempo Promedio"
                "Película Mejor Votada", "Puntaje Mejor Votación", 
                "Película Peor Votada", "Puntaje Peor Votación"]
     print(tabulate(table_data, headers, tablefmt="grid"))
