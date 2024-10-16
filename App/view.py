@@ -31,7 +31,7 @@ def print_menu():
 def load_data(control):
     filename = input("Ingrese el nombre del archivo CSV: ")
     total_movies, first_five, last_five = logic.load_data(control, filename)
-    print("\nTotal de películas cargadas: {}".format(total_movies))
+    print("\nTotal de películas cargadas: "+str(total_movies))
     print("\nPrimeras 5 películas cargadas:")
     if first_five:
         print(tabulate([
@@ -75,9 +75,6 @@ def load_data(control):
         print("No hay películas para mostrar en las últimas 5 entradas.")
 
 def print_req_1(control):
-    """
-    Solicita al usuario el título y el idioma, busca la película y muestra los resultados.
-    """
     title = input("Ingrese el título de la película: ").strip()
     original_language = input("Ingrese el idioma original de la película (ej. 'en' para inglés): ").strip().lower()
     
@@ -107,13 +104,13 @@ def print_req_1(control):
         print(tabulate(movie_info, headers=["Título", "Fecha", "Idioma", "Duración", 
                                             "Presupuesto", "Ingresos", "Ganancia", "Calificación", "Votos"], tablefmt="grid"))
     else:
-        print("No se encontró ninguna película con el título '{}' en el idioma '{}'.".format(title, original_language))
+        print("No se encontró ninguna película con ese título y en ese idioma")
 
 
 
 def print_req_2(control):
     n = int(input("El número (N) de ofertas a listar (ej.: 3, 5, 10 o 20): "))
-    idioma = input("Ingrese el idioma original de la película (ej. 'en' para inglés): ").lower()  # Normalizar a minúsculas
+    idioma = input("Ingrese el idioma original de la película (ej. 'en' para inglés): ").lower()  
     resultado,total_time = logic.req_2(control, idioma, n)
     if resultado == None:
         print("No se encontraron películas en ese idioma")
@@ -366,29 +363,37 @@ def print_req_7(control):
                "Película Peor Votada", "Puntaje Peor Votación"]
     print(tabulate(table_data, headers, tablefmt="grid"))
 
-
 def print_req_8(control):
     year = input("Ingrese el año (formato: YYYY): ").strip()
     genre = input("Ingrese el género de la película: ").strip().lower()
+    result, total_time = logic.req_8(control, year, genre)
+    print("El tiempo de ejecución es de:"+str(total_time)+"(ms)")
+    total_movies = result['total']
+    avg_vote = result['avg_vote']
+    avg_duration = result['avg_duration']
+    total_revenue = result['total_revenue']
 
-    if year == None or  genre == None:
-        print("El año o el género no pueden estar vacíos. Por favor, ingrese ambos valores.")
+    highest_rated_movie = "N/A"
+    highest_vote = "N/A"
+    if result['highest_rated_movie']:
+        highest_rated_movie = result['highest_rated_movie']['title']
+        highest_vote = result['highest_rated_movie']['vote_average']
 
-    result,total_time = logic.req_8(control, year, genre)
+    lowest_rated_movie = "N/A"
+    lowest_vote = "N/A"
+    if result['lowest_rated_movie']:
+        lowest_rated_movie = result['lowest_rated_movie']['title']
+        lowest_vote = result['lowest_rated_movie']['vote_average']
 
-    if result["total"] == 0:
-        print("No se encontraron películas para el año " + str(year) + " y género " + str(genre))
-    print("El tiempo de ejecución es de "+str(total_time)+"(ms)")
-    print("Películas del género " + str(genre) + " en el año " + str(year))
     data = [
-        ["Total de películas", result['total']],
-        ["Promedio de votación", f"{result['avg_vote']:.2f}"],
-        ["Promedio de duración (min)", f"{result['avg_duration']:.2f}"],
-        ["Ganancias acumuladas (USD)", f"{result['total_revenue']:,}"],
-        ["Película con mejor votación", result['highest_rated_movie']['title'] if result['highest_rated_movie'] else "N/A"],
-        ["Puntaje mejor votación", result['highest_rated_movie']['vote_average'] if result['highest_rated_movie'] else "N/A"],
-        ["Película con peor votación", result['lowest_rated_movie']['title'] if result['lowest_rated_movie'] else "N/A"],
-        ["Puntaje peor votación", result['lowest_rated_movie']['vote_average'] if result['lowest_rated_movie'] else "N/A"]
+        ["Total de películas", total_movies],
+        ["Promedio de votación", avg_vote],
+        ["Promedio de duración (min)", avg_duration],
+        ["Ganancias acumuladas (USD)", total_revenue],
+        ["Película con mejor votación", highest_rated_movie],
+        ["Puntaje mejor votación", highest_vote],
+        ["Película con peor votación", lowest_rated_movie],
+        ["Puntaje peor votación", lowest_vote]
     ]
     print(tabulate(data, headers=["Descripción", "Valor"], tablefmt="grid"))
 
