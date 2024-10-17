@@ -315,7 +315,7 @@ def req_4(catalog, estado, inicio, fin):
     return rta,total_time
 
  
-def req_5(catalog, budget_range, start_date_str, end_date_str):
+def req_51(catalog, budget_range, start_date_str, end_date_str):
     inic = get_time() 
     start_budget, end_budget = map(int, budget_range.split('-'))
     start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
@@ -377,8 +377,179 @@ def req_5(catalog, budget_range, start_date_str, end_date_str):
         "movies": formatted_movies
     }
     return rta,total_time
+def req_5(catalog, budget_range, start_date_str, end_date_str):
+    inic = get_time()
 
+    # Separar el rango de presupuesto
+    start_budget, end_budget = map(int, budget_range.split('-'))
+    
+    # Convertir las fechas de cadena a objeto datetime
+    start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+    end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+
+    matching_movies = []
+    total_budget = 0
+    total_movies = 0
+
+    # Iterar por los años en el rango de fechas
+    for year in range(start_date.year, end_date.year + 1):
+        year_list = ms.get(catalog['movies_by_year'], year)
+        if year_list is None:
+            continue
+        
+        current = year_list['first']
+        while current:
+            movie = current['info']
+            movie_date = datetime.strptime(movie['release_date'], '%Y-%m-%d')
+            
+            # Filtrar las películas dentro del rango de fechas
+            if start_date <= movie_date <= end_date:
+                # Tratar 'Undefined' como presupuesto 0
+                budget = movie['budget']
+                if budget == 'Undefined':
+                    budget_value = 0
+                else:
+                    budget_value = float(budget)
+                
+                # Validar que el presupuesto esté dentro del rango
+                if start_budget <= budget_value <= end_budget:
+                    matching_movies.append(movie)
+                    total_budget += budget_value
+                    total_movies += 1
+            
+            current = current['next']
+    
+    # Crear una lista enlazada para las películas que coinciden
+    linked_movie_list = sl.new_list()
+    for movie in matching_movies:
+        sl.add_last(linked_movie_list, movie)
+    
+    # Ordenar la lista de películas
+    sorted_movie_list = sl.merge_sort(linked_movie_list, sort_crit)
+    
+    # Calcular el promedio del presupuesto
+    if total_movies > 0:
+        average_budget = total_budget / total_movies  
+    else: 
+        average_budget = 0
+
+    # Limitar la lista de películas a las 10 primeras si hay más de 20
+    if total_movies > 20:
+        sorted_movie_list = sl.sub_list(sorted_movie_list, 0, 10)
+
+    # Formatear las películas
+    formatted_movies = []
+    for i in range(sl.size(sorted_movie_list)):
+        movie = sl.get_element(sorted_movie_list, i)
+        formatted_movie = {
+            "release_date": movie['release_date'],
+            "title": movie['title'],
+            "budget": format_number(movie['budget'] if movie['budget'] != 'Undefined' else 0),
+            "revenue": format_number(movie['revenue']),
+            "gain": format_gain(movie.get('gain', "Undefined")),
+            "runtime": movie['runtime'],
+            "vote_average": movie['vote_average'],
+            "original_language": movie['original_language']
+        }
+        formatted_movies.append(formatted_movie)
+
+    # Calcular el tiempo total de ejecución
+    fin = get_time()
+    total_time = delta_time(inic, fin)
+
+    # Devolver el resultado y el tiempo de ejecución
+    rta = {
+        "total": total_movies,
+        "average_budget": average_budget,
+        "movies": formatted_movies
+    }
+    return rta, total_time
 def req_6(catalog, language, start_year, end_year):
+    inic = get_time()
+
+    # Convertir los años de entrada a enteros
+    start_year = int(start_year)
+    end_year = int(end_year)
+    result = []
+
+    # Iterar por los años en orden descendente (del más reciente al más antiguo)
+    for year in range(end_year, start_year - 1, -1):
+        year_list = ms.get(catalog['movies_by_year'], year)
+
+        # Variables para acumular los datos del año
+        total_movies = 0
+        total_votes = 0
+        total_runtime = 0
+        total_gain = 0
+        highest_rated_movie = None
+        lowest_rated_movie = None
+
+        if year_list is not None:
+            current = year_list['first']
+            while current:
+                movie = current['info']
+                
+                # Verificar el idioma y si la película fue publicada (Released)
+                if movie['original_language'].lower() == language.lower() and movie['status'] == 'Released':
+                    total_movies += 1
+                    
+                    # Sumar la votación promedio
+                    vote_average = float(movie['vote_average']) if 'vote_average' in movie and isinstance(movie['vote_average'], (int, float)) else 0
+                    total_votes += vote_average
+                    
+                    # Sumar la duración de la película
+                    runtime = float(movie['runtime']) if isinstance(movie['runtime'], (int, float)) else 0
+                    total_runtime += runtime
+                    
+                    # Calcular las ganancias (revenue - budget)
+                    revenue = float(movie['revenue']) if 'revenue' in movie and isinstance(movie['revenue'], (int, float)) else None
+                    budget = float(movie['budget']) if 'budget' in movie and isinstance(movie['budget'], (int, float)) else None
+                    
+                    if revenue is not None and budget is not None:
+                        gain = revenue - budget
+                    else:
+                        gain = "Undefined"
+                    
+                    if isinstance(gain, (int, float)):
+                        total_gain += gain
+                    
+                    # Actualizar la película con mayor votación
+                    if highest_rated_movie is None or vote_average > float(highest_rated_movie['vote_average']):
+                        highest_rated_movie = movie
+                    
+                    # Actualizar la película con menor votación
+                    if lowest_rated_movie is None or vote_average < float(lowest_rated_movie['vote_average']):
+                        lowest_rated_movie = movie
+
+                current = current['next']
+
+        # Solo agregar datos si se encontraron películas en el año
+        if total_movies > 0:
+            avg_votes = total_votes / total_movies if total_movies > 0 else 0
+            avg_runtime = total_runtime / total_movies if total_runtime > 0 else "None"
+            
+            result.append({
+                "year": year,
+                "total_movies": total_movies,
+                "avg_votes": avg_votes,
+                "avg_runtime": avg_runtime,
+                "total_gain": total_gain if total_gain > 0 else "Undefined",
+                "highest_rated_movie": {
+                    "title": highest_rated_movie['title'] if highest_rated_movie else "N/A",
+                    "vote_average": highest_rated_movie['vote_average'] if highest_rated_movie else "N/A"
+                },
+                "lowest_rated_movie": {
+                    "title": lowest_rated_movie['title'] if lowest_rated_movie else "N/A",
+                    "vote_average": lowest_rated_movie['vote_average'] if lowest_rated_movie else "N/A"
+                }
+            })
+
+    fin = get_time()
+    total_time = delta_time(inic, fin)
+    
+    return result, total_time
+
+def req_61(catalog, language, start_year, end_year):
     inic = get_time() 
     start_year = int(start_year)
     end_year = int(end_year)
