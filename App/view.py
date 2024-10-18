@@ -264,43 +264,36 @@ def print_req_5(control):
         tablefmt="grid"
     ))
 def print_req_6(control):
-
-    # Obtener los parámetros de entrada del usuario
     language = input("Ingrese el idioma original de publicación (ej. 'en', 'fr', 'zh'): ").strip().lower()
     start_year = input("Ingrese el año inicial del periodo (ej.: '1998'): ").strip()
     end_year = input("Ingrese el año final del periodo (ej.: '2024'): ").strip()
-
-    # Validar que los valores no estén vacíos
-    if not language or not start_year or not end_year:
-        print("Idioma o años vacíos. Por favor, ingrese todos los valores.")
-        return
-
-    # Llamar a la función lógica
     result, total_time = logic.req_6(control, language, start_year, end_year)
-    
-    # Si no hay resultados
     if not result:
-        print(f"No se encontraron películas en el idioma '{language}' entre los años {start_year} y {end_year}")
+        print("No se encontraron películas en el idioma " + str(language) + " entre los años " + str(start_year) + " y " + str(end_year))
         return
-    
-    # Mostrar el tiempo de ejecución
-    print(f"El tiempo de ejecución es de {total_time} ms")
-    print(f"Películas en el idioma '{language}' entre los años {start_year} y {end_year}")
-
-    # Preparar los datos para la tabla
+    print("El tiempo de ejecución es de " + str(total_time) + " ms")
+    print("Películas en el idioma " + str(language) + " entre los años " + str(start_year) + " y " + str(end_year))
     table_data = []
     for item in result:
-        # Manejar películas mejor y peor votadas de forma segura
-        highest_movie_title = item["highest_rated_movie"].get('title', 'None') if item["highest_rated_movie"] else 'None'
-        highest_movie_vote = item["highest_rated_movie"].get('vote_average', 'None') if item["highest_rated_movie"] else 'None'
-        lowest_movie_title = item["lowest_rated_movie"].get('title', 'None') if item["lowest_rated_movie"] else 'None'
-        lowest_movie_vote = item["lowest_rated_movie"].get('vote_average', 'None') if item["lowest_rated_movie"] else 'None'
-
-        # Añadir los datos de cada año a la tabla
+        if item["highest_rated_movie"]:
+            highest_movie_title = item["highest_rated_movie"].get('title', 'None')
+        else:
+            highest_movie_title ='None'
+        if item["highest_rated_movie"]:
+            highest_movie_vote = item["highest_rated_movie"].get('vote_average', 'None')
+        else: 
+            highest_movie_vote = 'None'
+        if item["lowest_rated_movie"]:
+            lowest_movie_title = item["lowest_rated_movie"].get('title', 'None')
+        else: lowest_movie_title = 'None'
+        if item["lowest_rated_movie"]:
+            lowest_movie_vote = item["lowest_rated_movie"].get('vote_average', 'None')
+        else: 
+            lowest_movie_vote = 'None'
         table_data.append([
             item["year"],
             item["total_movies"],
-            f"{item['avg_votes']:.2f}",
+            item['avg_votes'],
             item["total_gain"],
             item["avg_runtime"],
             highest_movie_title,
@@ -308,66 +301,12 @@ def print_req_6(control):
             lowest_movie_title,
             lowest_movie_vote
         ])
-
-    # Definir los encabezados correctamente (separados por comas)
     headers = [
         "Año", "Total Películas", "Votación Promedio", "Ganancia Total", "Tiempo Promedio",
         "Película Mejor Votada", "Puntaje Mejor Votación", 
         "Película Peor Votada", "Puntaje Peor Votación"
     ]
-    
-    # Imprimir la tabla con formato de cuadrícula
-    print(tabulate(table_data, headers, tablefmt="grid"))
-
-def print_req_61(control):
-
-    language = input("Ingrese el idioma original de publicación (ej. 'en', 'fr', 'zh'): ").strip().lower()
-    start_year = input("Ingrese el año inicial del periodo (ej.: '1998'): ").strip()
-    end_year = input("Ingrese el año final del periodo (ej.: '2024'): ").strip()
-
-    if language == None or start_year == None or  end_year== None:
-        print("Idioma o años vacíos. Por favor, ingrese todos los valores.")
-
-
-    result,total_time = logic.req_6(control, language, start_year, end_year)
-    
-    if result == None:
-        print("No se encontraron películas en el idioma " + str(language) + " entre los años " + str(start_year) + " y " + str(end_year))
-        
-    print("El tiempo de ejecución es de "+str(total_time)+"(ms)")
-    print("Películas en el idioma " + str(language) + " entre los años " + str(start_year) + " y " + str(end_year))
-    table_data = []
-    for item in result:
-        highest_movie_title = "None"
-        highest_movie_vote = "None"
-        lowest_movie_title = "None"
-        lowest_movie_vote = "None"
-        
-        if item["highest_rated_movie"]:
-            highest_movie_title = item["highest_rated_movie"]['title']
-            highest_movie_vote = item["highest_rated_movie"]['vote_average']
-        
-        if item["lowest_rated_movie"]:
-            lowest_movie_title = item["lowest_rated_movie"]['title']
-            lowest_movie_vote = item["lowest_rated_movie"]['vote_average']
-
-        table_data.append([
-            item["year"],
-            item["total_movies"],
-            item["avg_votes"],
-            item["total_gain"],
-            item["avg_runtime"],
-            highest_movie_title,
-            highest_movie_vote,
-            lowest_movie_title,
-            lowest_movie_vote
-        ])
-
-    headers = ["Año", "Total Películas", "Votación Promedio", "Ganancia Total", "Tiempo Promedio"
-               "Película Mejor Votada", "Puntaje Mejor Votación", 
-               "Película Peor Votada", "Puntaje Peor Votación"]
-    print(tabulate(table_data, headers, tablefmt="grid"))
-    
+    print(tabulate(table_data, headers, tablefmt="simple_grid"))
 
 def print_req_7(control):
     company_name = input("Ingrese el nombre de la compañía productora: ").strip()
