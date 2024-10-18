@@ -209,7 +209,7 @@ def req_3(catalog, language, start_date_str, end_date_str):
     else:
         average_duration = 0
     if total_movies > 10:
-        sorted_movie_list = al.sub_list(sorted_movie_list, 0, 10)
+        sorted_movie_list = al.sub_list(sorted_movie_list, 1, 10)
     formatted_movies = []
     for i in range(al.size(sorted_movie_list)):
         movie = al.get_element(sorted_movie_list, i)
