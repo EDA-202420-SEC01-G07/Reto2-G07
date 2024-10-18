@@ -351,7 +351,7 @@ def print_req_7(control):
             lowest_movie_title,
             lowest_movie_vote
         ])
-    headers = ["Año", "Total Películas", "Votación Promedio", "Ganancia Total", "Tiempo Promedio"
+    headers = ["Año", "Total Películas", "Votación Promedio", "Ganancia Total", "Tiempo Promedio",
                "Película Mejor Votada", "Puntaje Mejor Votación", 
                "Película Peor Votada", "Puntaje Peor Votación"]
     print(tabulate(table_data, headers, tablefmt="grid"))
